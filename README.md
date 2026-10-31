@@ -89,3 +89,14 @@ Rules (`apps/billing/engine.py`):
 - One failing subscription never stops the run; it is logged and shown in the summary.
 - Overdue is derived (confirmed, unpaid, past due date), never stored.
 - Paying an invoice (and marking it Paid automatically) arrives with payments in step 8.
+
+## Payments (step 8)
+
+`/payments/` (admin and staff), `/payments/record/<invoice id>/`, and a Payments box on every invoice.
+
+- Methods: cash, bank transfer, card, UPI. Part payments are supported; one payment belongs to one invoice.
+- Recording locks the invoice row first, so parallel payments can never take an invoice past its total (a test fires six at once). The database also refuses `amount_paid` above `total`.
+- `amount_paid` is always recalculated from the live (non-voided) payments, never incremented. The invoice becomes Paid when they reach the total and goes back to Confirmed if a payment is voided.
+- Payments are never edited or deleted. Admin voids a mistake with a reason; it is audited.
+- Outstanding = balance on confirmed invoices; Overdue = the same with a due date before today (derived, never stored); Collected = live payments in a date range (`apps/payments/selectors.py`). The reports in step 9 reuse these.
+- Zero-total invoices (100% discount) are created Paid.

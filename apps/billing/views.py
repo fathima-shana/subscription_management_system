@@ -56,6 +56,7 @@ def invoice_detail(request, pk):
             "today": today,
             "display_status": invoice.display_status(today),
             "page_title": invoice.number,
+            "payments": invoice.payments.select_related("created_by", "voided_by"),
         },
     )
 

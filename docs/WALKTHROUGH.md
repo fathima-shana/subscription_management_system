@@ -71,3 +71,15 @@ admin, and a private (incognito) window for the staff member or customer, so the
 8. Overdue is never stored: a confirmed invoice with an unpaid balance and a due date in the past shows as **overdue** automatically.
 9. From the terminal (for a cron job): `python manage.py run_billing`. Options: `--dry-run` lists what is due without changing anything; `--date 2026-12-31` bills as if that were today.
 10. End of a subscription: if its expiry date is reached and the plan has **Auto-close**, the system closes it after the last period (history note "Reached end date"). Without Auto-close, billing simply stops and the subscription stays Active until someone closes it.
+
+## 7. Payments (step 8)
+1. Open an invoice (`/invoices/<id>/`) that is **Confirmed** and click **Record payment** (`/payments/record/<invoice id>/`). Admin and staff can do this.
+2. The form shows the invoice total, what is already paid and the balance due. Amount defaults to the balance. Choose a method (**Cash, Bank transfer, Card, UPI**), set the date (today or earlier) and add a reference such as a cheque number or UPI reference.
+3. **Part payment:** enter less than the balance, for example 500 of 1,180. The invoice stays Confirmed and shows the new balance (₹680.00). Record more payments until the balance is zero.
+4. When the payments add up to the total, the invoice turns **Paid** automatically. The Record payment button disappears.
+5. Rules you can try: paying more than the balance is refused, zero or negative amounts are refused, a future date is refused, and paid or cancelled invoices cannot receive payments.
+6. The invoice page lists every payment under **Payments** with date, method, reference and who recorded it.
+7. **Void** (admin only, next to each payment): enter a reason. The payment is struck through, the invoice balance goes back up and a Paid invoice is reopened. Voided payments never count as collected. Nothing is ever deleted.
+8. **Payments** (`/payments/`, admin and staff) shows three cards: **Outstanding** (what is still owed on open invoices), **Overdue** (open invoices past their due date, click it to see them) and **Collected this month**. Below is every payment; filter by method or search by invoice, customer or reference.
+9. An invoice that is fully discounted (total 0) is created as Paid and is never outstanding.
+10. Cancelling: an invoice that has a payment cannot be cancelled. Void the payment first.

@@ -13,6 +13,7 @@
     <span class="rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ring-1 ring-inset {% badge_classes display_status %}">{{ display_status }}</span>
     <div class="ml-auto flex flex-wrap gap-2">
       <a href="{% url 'invoices:print' invoice.pk %}" target="_blank" class="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">Print view</a>
+      {% if invoice.status == 'confirmed' %}<a href="{% url 'payments:create' invoice.pk %}" class="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700">Record payment</a>{% endif %}
       {% if invoice.status == 'confirmed' or invoice.status == 'paid' %}
       <form method="post" action="{% url 'invoices:send' invoice.pk %}">{% csrf_token %}<button class="rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-700">{% if invoice.sent_at %}Send again{% else %}Send to customer{% endif %}</button></form>
       {% endif %}
@@ -65,4 +66,37 @@
     </dl>
   </div>
 </section>
+
+{% if payments %}
+<section class="mt-6 rounded-xl border border-slate-200 bg-white shadow-sm">
+  <div class="border-b border-slate-200 px-6 py-4"><h3 class="font-semibold">Payments</h3></div>
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-slate-200 text-sm">
+      <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <tr><th class="px-6 py-3">Date</th><th class="px-4 py-3">Method</th><th class="px-4 py-3">Reference</th><th class="px-4 py-3 text-right">Amount</th><th class="px-4 py-3">Recorded by</th>{% if user.is_admin %}<th class="px-4 py-3"></th>{% endif %}</tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for p in payments %}
+        <tr class="{% if p.is_voided %}text-slate-400{% endif %}">
+          <td class="px-6 py-3 tabular-nums">{{ p.payment_date|date:"d M Y" }}</td>
+          <td class="px-4 py-3">{{ p.get_method_display }}</td>
+          <td class="px-4 py-3">{{ p.note|default:"-" }}</td>
+          <td class="px-4 py-3 text-right tabular-nums {% if p.is_voided %}line-through{% endif %}">{{ p.amount|money }}</td>
+          <td class="px-4 py-3">{{ p.created_by.full_name|default:"-" }}{% if p.is_voided %} <span class="text-xs font-medium text-rose-600">voided{% if p.void_reason %}: {{ p.void_reason }}{% endif %}</span>{% endif %}</td>
+          {% if user.is_admin %}
+          <td class="px-4 py-3 text-right">
+            {% if not p.is_voided %}
+            <form method="post" action="{% url 'payments:void' p.pk %}" onsubmit="var r = prompt('Void this payment? Give a short reason:'); if (r === null) return false; this.reason.value = r; return true;">
+              {% csrf_token %}<input type="hidden" name="reason" value=""><button class="text-xs font-medium text-rose-700 hover:underline">Void</button>
+            </form>
+            {% endif %}
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
 {% endblock %}

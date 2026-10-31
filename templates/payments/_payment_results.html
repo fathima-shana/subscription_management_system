@@ -1,0 +1,31 @@
+{% load ui %}
+<div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+  {% if page_obj.object_list %}
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-slate-200 text-sm">
+      <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <tr><th class="px-4 py-3">Date</th><th class="px-4 py-3">Invoice</th><th class="px-4 py-3">Customer</th><th class="px-4 py-3">Method</th><th class="px-4 py-3">Reference</th><th class="px-4 py-3 text-right">Amount</th><th class="px-4 py-3">By</th></tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for p in page_obj %}
+        <tr class="{% if p.is_voided %}text-slate-400{% endif %}">
+          <td class="px-4 py-3 tabular-nums">{{ p.payment_date|date:"d M Y" }}</td>
+          <td class="px-4 py-3 font-medium"><a href="{% url 'invoices:detail' p.invoice_id %}" class="text-brand-700 hover:underline">{{ p.invoice.number }}</a></td>
+          <td class="px-4 py-3">{{ p.invoice.bill_to_name }}</td>
+          <td class="px-4 py-3">{{ p.get_method_display }}</td>
+          <td class="px-4 py-3">{{ p.note|default:"-" }}</td>
+          <td class="px-4 py-3 text-right tabular-nums {% if p.is_voided %}line-through{% endif %}">{{ p.amount|money }}{% if p.is_voided %} <span class="no-underline text-xs font-medium text-rose-600">voided</span>{% endif %}</td>
+          <td class="px-4 py-3">{{ p.created_by.full_name|default:"-" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "partials/pagination.html" %}
+  {% else %}
+  <div class="px-6 py-14 text-center">
+    <p class="font-medium text-slate-900">{% if q or method %}No payments match your filters{% else %}No payments yet{% endif %}</p>
+    <p class="mt-1 text-sm text-slate-500">{% if q or method %}Try clearing the search or the filter.{% else %}Open an invoice and click Record payment.{% endif %}</p>
+  </div>
+  {% endif %}
+</div>

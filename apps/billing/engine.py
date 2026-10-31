@@ -33,7 +33,7 @@ from apps.subscriptions import services as subscription_services
 from apps.subscriptions.models import Status, Subscription
 from apps.subscriptions.pricing import price_lines
 
-from .models import Invoice, InvoiceLine
+from .models import Invoice, InvoiceLine, InvoiceStatus
 from .periods import next_period_start, period_end
 
 logger = logging.getLogger("billing")
@@ -158,6 +158,8 @@ def _create_invoice(sub, priced, start, plan_period, today):
         number=next_number("invoice", "INV"),
         subscription=sub,
         customer=customer,
+        # A 100%-discounted invoice owes nothing, so there is nothing to pay.
+        status=InvoiceStatus.PAID if priced.total == 0 else InvoiceStatus.CONFIRMED,
         period_start=start,
         period_end=period_end(start, plan_period, sub.start_date),
         issue_date=today,
