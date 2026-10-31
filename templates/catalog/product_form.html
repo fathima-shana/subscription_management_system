@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mx-auto max-w-xl">
+  <a href="{% if product %}{% url 'catalog:product_detail' product.pk %}{% else %}{% url 'catalog:product_list' %}{% endif %}" class="text-sm font-medium text-brand-600 hover:text-brand-700">&larr; Back</a>
+  <div class="mt-3 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+    <h2 class="text-lg font-semibold">{% if product %}Edit product{% else %}Add a product{% endif %}</h2>
+    <p class="mt-1 text-sm text-slate-600">Price changes apply to new subscriptions and invoices only. Existing invoices keep the price they were issued with.</p>
+    <form method="post" class="mt-6 space-y-5" novalidate>
+      {% csrf_token %}
+      {% include "partials/form_errors.html" %}
+      {% include "partials/form_field.html" with field=form.name %}
+      <div class="grid gap-5 sm:grid-cols-2">
+        {% include "partials/form_field.html" with field=form.product_type %}
+        {% include "partials/form_field.html" with field=form.default_tax %}
+        {% include "partials/form_field.html" with field=form.sales_price %}
+        {% include "partials/form_field.html" with field=form.cost_price %}
+      </div>
+      {% include "partials/form_field.html" with field=form.notes %}
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <a href="{% if product %}{% url 'catalog:product_detail' product.pk %}{% else %}{% url 'catalog:product_list' %}{% endif %}" class="rounded-lg px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">Cancel</a>
+        <button type="submit" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700">{% if product %}Save changes{% else %}Create product{% endif %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

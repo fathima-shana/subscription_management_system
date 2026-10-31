@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load ui %}
+
+{% block content %}
+<a href="{% url 'catalog:product_list' %}" class="text-sm font-medium text-brand-600 hover:text-brand-700">&larr; Back to products</a>
+
+<div class="mt-3 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+  <div class="flex flex-wrap items-start gap-3">
+    <div>
+      <h2 class="text-xl font-semibold tracking-tight">{{ product.name }}</h2>
+      <p class="mt-1 text-sm text-slate-500">{{ product.get_product_type_display }}</p>
+    </div>
+    {% if product.is_active %}<span class="rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset {% badge_classes 'active' %}">Active</span>
+    {% else %}<span class="rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset {% badge_classes 'closed' %}">Inactive</span>{% endif %}
+    {% if user.is_admin %}
+    <div class="ml-auto flex gap-2">
+      <a href="{% url 'catalog:product_edit' product.pk %}" class="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">Edit</a>
+      <form method="post" action="{% url 'catalog:product_toggle_active' product.pk %}" onsubmit="return {% if product.is_active %}confirm('Deactivate {{ product.name|escapejs }}? It can no longer be added to new subscriptions.'){% else %}true{% endif %}">
+        {% csrf_token %}<input type="hidden" name="active" value="{% if product.is_active %}0{% else %}1{% endif %}">
+        <button class="rounded-lg border px-3 py-1.5 text-sm font-medium {% if product.is_active %}border-rose-200 text-rose-700 hover:bg-rose-50{% else %}border-emerald-200 text-emerald-700 hover:bg-emerald-50{% endif %}">{% if product.is_active %}Deactivate{% else %}Reactivate{% endif %}</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+
+  <dl class="mt-5 grid gap-4 text-sm sm:grid-cols-4">
+    <div><dt class="text-slate-500">Sales price</dt><dd class="mt-0.5 text-base font-semibold tabular-nums">{{ product.sales_price|money }}</dd></div>
+    <div><dt class="text-slate-500">Cost price</dt><dd class="mt-0.5 text-base font-semibold tabular-nums">{{ product.cost_price|money }}</dd></div>
+    <div><dt class="text-slate-500">Margin</dt><dd class="mt-0.5 text-base font-semibold tabular-nums">{{ product.margin|money }}</dd></div>
+    <div><dt class="text-slate-500">Default tax</dt><dd class="mt-0.5 text-base font-semibold">{{ product.default_tax.label|default:"None" }}</dd></div>
+  </dl>
+  {% if product.notes %}<p class="mt-4 whitespace-pre-line border-t border-slate-100 pt-4 text-sm text-slate-600">{{ product.notes }}</p>{% endif %}
+</div>
+
+{% include "catalog/_variants.html" %}
+{% endblock %}

@@ -1,0 +1,55 @@
+{% load ui %}
+<div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+  {% if page_obj.object_list %}
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-slate-200 text-sm">
+      <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <tr>
+          <th class="px-4 py-3">Plan</th><th class="px-4 py-3">Billing</th><th class="px-4 py-3 text-right">Min qty</th>
+          <th class="px-4 py-3">Valid</th><th class="px-4 py-3">Rules</th><th class="px-4 py-3">Status</th>
+          {% if user.is_admin %}<th class="px-4 py-3 text-right">Actions</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for p in page_obj %}
+        <tr>
+          <td class="px-4 py-3 font-medium text-slate-900">{{ p.name }}</td>
+          <td class="px-4 py-3 text-slate-600">{{ p.get_billing_period_display }}</td>
+          <td class="px-4 py-3 text-right tabular-nums text-slate-600">{{ p.min_quantity }}</td>
+          <td class="px-4 py-3 text-slate-600">{% if p.start_date or p.end_date %}{{ p.start_date|date:"d M Y"|default:"any time" }} &ndash; {{ p.end_date|date:"d M Y"|default:"open-ended" }}{% else %}Always{% endif %}</td>
+          <td class="px-4 py-3">
+            <div class="flex flex-wrap gap-1 text-xs">
+              {% if p.closable %}<span class="rounded bg-slate-100 px-1.5 py-0.5 text-slate-600">Closable</span>{% endif %}
+              {% if p.pausable %}<span class="rounded bg-slate-100 px-1.5 py-0.5 text-slate-600">Pausable</span>{% endif %}
+              {% if p.renewable %}<span class="rounded bg-slate-100 px-1.5 py-0.5 text-slate-600">Renewable</span>{% endif %}
+              {% if p.auto_close %}<span class="rounded bg-amber-50 px-1.5 py-0.5 text-amber-700">Auto-close</span>{% endif %}
+            </div>
+          </td>
+          <td class="px-4 py-3">
+            {% if p.is_active %}<span class="rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset {% badge_classes 'active' %}">Active</span>
+            {% else %}<span class="rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset {% badge_classes 'closed' %}">Inactive</span>{% endif %}
+          </td>
+          {% if user.is_admin %}
+          <td class="px-4 py-3 text-right">
+            <div class="flex justify-end gap-2">
+              <a href="{% url 'catalog:plan_edit' p.pk %}" class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">Edit</a>
+              <form method="post" action="{% url 'catalog:plan_toggle_active' p.pk %}" onsubmit="return {% if p.is_active %}confirm('Deactivate {{ p.name|escapejs }}? It can no longer be used for new subscriptions.'){% else %}true{% endif %}">
+                {% csrf_token %}<input type="hidden" name="active" value="{% if p.is_active %}0{% else %}1{% endif %}">
+                <button class="rounded-lg border px-3 py-1.5 text-xs font-medium {% if p.is_active %}border-rose-200 text-rose-700 hover:bg-rose-50{% else %}border-emerald-200 text-emerald-700 hover:bg-emerald-50{% endif %}">{% if p.is_active %}Deactivate{% else %}Reactivate{% endif %}</button>
+              </form>
+            </div>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "partials/pagination.html" %}
+  {% else %}
+  <div class="px-6 py-14 text-center">
+    <p class="font-medium text-slate-900">{% if q %}No plans match "{{ q }}"{% else %}No plans yet{% endif %}</p>
+    <p class="mt-1 text-sm text-slate-500">{% if q %}Try a different name.{% elif user.is_admin %}Add a plan such as Monthly or Yearly to bill subscriptions.{% else %}An admin needs to add plans.{% endif %}</p>
+  </div>
+  {% endif %}
+</div>

@@ -1,0 +1,18 @@
+{% load ui %}
+{% if error %}
+  <p class="text-xs text-rose-600">{{ error }}</p>
+{% elif result %}
+  {% if result.lines %}
+  <dl class="space-y-1">
+    <div class="flex justify-between"><dt class="text-slate-500">Amount</dt><dd class="tabular-nums">{{ result.base|money }}</dd></div>
+    {% for line in result.lines %}
+    <div class="flex justify-between"><dt class="text-slate-500">{{ line.tax.label }}</dt><dd class="tabular-nums">{{ line.amount|money }}</dd></div>
+    {% endfor %}
+    <div class="flex justify-between border-t border-slate-200 pt-1 font-semibold"><dt>Total with tax</dt><dd class="tabular-nums">{{ result.grand_total|money }}</dd></div>
+  </dl>
+  {% else %}
+  <p class="text-xs text-slate-500">No active taxes to apply.</p>
+  {% endif %}
+{% else %}
+  <p class="text-xs text-slate-400">Type an amount to preview.</p>
+{% endif %}

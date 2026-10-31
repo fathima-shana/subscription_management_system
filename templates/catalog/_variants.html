@@ -1,0 +1,55 @@
+{% load ui %}
+<section id="variants" class="mt-6 rounded-xl border border-slate-200 bg-white shadow-sm">
+  <div class="border-b border-slate-200 px-6 py-4">
+    <h3 class="font-semibold text-slate-900">Variants</h3>
+    <p class="text-sm text-slate-500">Options such as Brand or Size. The final price is the product price plus the extra price.</p>
+  </div>
+
+  {% if variants %}
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-slate-200 text-sm">
+      <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <tr><th class="px-6 py-3">Option</th><th class="px-6 py-3 text-right">Extra price</th><th class="px-6 py-3 text-right">Final price</th><th class="px-6 py-3">Status</th>{% if user.is_admin %}<th class="px-6 py-3 text-right">Actions</th>{% endif %}</tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for v in variants %}
+        <tr class="{% if not v.is_active %}text-slate-400{% endif %}">
+          <td class="px-6 py-3 font-medium">{{ v.label }}</td>
+          <td class="px-6 py-3 text-right tabular-nums">+{{ v.extra_price|money }}</td>
+          <td class="px-6 py-3 text-right tabular-nums">{{ v.price|money }}</td>
+          <td class="px-6 py-3">{% if v.is_active %}<span class="rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset {% badge_classes 'active' %}">Active</span>{% else %}<span class="rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset {% badge_classes 'closed' %}">Inactive</span>{% endif %}</td>
+          {% if user.is_admin %}
+          <td class="px-6 py-3 text-right">
+            <div class="flex justify-end gap-2">
+              <a href="{% url 'catalog:variant_edit' v.pk %}" class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">Edit</a>
+              <button type="button" hx-post="{% url 'catalog:variant_toggle_active' v.pk %}" hx-vals='{"active": "{% if v.is_active %}0{% else %}1{% endif %}"}'
+                      hx-target="#variants" hx-swap="outerHTML"
+                      class="rounded-lg border px-3 py-1.5 text-xs font-medium {% if v.is_active %}border-rose-200 text-rose-700 hover:bg-rose-50{% else %}border-emerald-200 text-emerald-700 hover:bg-emerald-50{% endif %}">{% if v.is_active %}Deactivate{% else %}Reactivate{% endif %}</button>
+            </div>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="px-6 py-8 text-center text-sm text-slate-500">No variants yet. This product is sold at its base price.</p>
+  {% endif %}
+
+  {% if user.is_admin %}
+  <form method="post" action="{% url 'catalog:variant_create' product.pk %}" novalidate
+        hx-post="{% url 'catalog:variant_create' product.pk %}" hx-target="#variants" hx-swap="outerHTML"
+        class="border-t border-slate-200 bg-slate-50/60 px-6 py-5">
+    {% csrf_token %}
+    <p class="mb-3 text-sm font-medium text-slate-700">Add a variant</p>
+    {% include "partials/form_errors.html" with form=variant_form %}
+    <div class="grid gap-4 sm:grid-cols-4 sm:items-start">
+      {% include "partials/form_field.html" with field=variant_form.attribute %}
+      {% include "partials/form_field.html" with field=variant_form.value %}
+      {% include "partials/form_field.html" with field=variant_form.extra_price %}
+      <div class="sm:pt-6"><button type="submit" class="w-full rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700">Add variant</button></div>
+    </div>
+  </form>
+  {% endif %}
+</section>

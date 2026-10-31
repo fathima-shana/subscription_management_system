@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-5 flex flex-wrap items-center gap-3">
+  {% url 'catalog:plan_list' as list_url %}
+  {% include "partials/search_box.html" with url=list_url target="plan-results" placeholder="Search plans by name" %}
+  {% if user.is_admin %}
+  <a href="{% url 'catalog:plan_create' %}" class="ml-auto rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700">Add plan</a>
+  {% endif %}
+</div>
+<div id="plan-results">{% include "catalog/_plan_results.html" %}</div>
+{% endblock %}

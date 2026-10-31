@@ -33,3 +33,19 @@ Sign up at `/accounts/signup/`. Password reset emails print in the terminal runn
 
 Access rules live in `apps/core/permissions.py` (roles) and `apps/core/scoping.py` (own-rows-only for customers).
 Sensitive actions are recorded in the audit log (`core.AuditLog`, read-only in Django admin).
+
+## Catalog and taxes (step 4)
+
+| Page | URL | Admin | Staff |
+|---|---|---|---|
+| Products (with variants) | `/catalog/products/` | create, edit, activate/deactivate | view |
+| Plans | `/catalog/plans/` | create, edit, activate/deactivate | view |
+| Taxes + calculator | `/taxes/` | create, edit, activate/deactivate | view |
+
+Design notes:
+- Money is `Decimal`, rounded half-up to 2 places in one place (`apps/core/money.py`).
+- Tax rules (`apps/taxes/calculator.py`): tax is computed on the amount after discounts; several taxes use the same base (no compounding); a fixed tax is a flat amount per line.
+- Final variant price = product sales price + variant extra price.
+- Products, plans, taxes and variants are deactivated, never deleted, so later invoices can always refer to them.
+- Names are unique ignoring case, enforced by the database as well as the forms.
+- Every change is written to the audit log with before/after values.

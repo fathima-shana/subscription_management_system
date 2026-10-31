@@ -27,3 +27,12 @@ def role_required(*roles: str):
         return wrapper
 
     return decorator
+
+
+def ensure_admin(actor) -> None:
+    """Service-layer guard: raise PermissionDenied unless `actor` is an active admin.
+
+    Views are already decorated, but services re-check so the rule survives a forgotten decorator.
+    """
+    if not getattr(actor, "is_authenticated", False) or getattr(actor, "role", None) != "admin":
+        raise PermissionDenied("Only an admin can do this.")

@@ -12,6 +12,9 @@ ICONS = {
     "home": "M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10",
     "users": "M17 20v-1a4 4 0 00-4-4H7a4 4 0 00-4 4v1M10 11a4 4 0 100-8 4 4 0 000 8zM21 20v-1a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75",
     "shield": "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
+    "box": "M21 8l-9-5-9 5v8l9 5 9-5V8zM3.3 7.5L12 12.5l8.7-5M12 22V12.5",
+    "repeat": "M17 2l4 4-4 4M3 11V9a3 3 0 013-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 01-3 3H3",
+    "percent": "M19 5L5 19M7.5 9a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM16.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z",
 }
 
 
@@ -27,6 +30,9 @@ class NavItem:
 NAV_ITEMS = [
     NavItem("Dashboard", "core:home", ALL, "home", exact=True),
     NavItem("Customers", "customers:list", INTERNAL, "users"),
+    NavItem("Products", "catalog:product_list", INTERNAL, "box"),
+    NavItem("Plans", "catalog:plan_list", INTERNAL, "repeat"),
+    NavItem("Taxes", "taxes:list", INTERNAL, "percent"),
     NavItem("Staff", "staff:list", ADMIN, "shield"),
 ]
 
