@@ -1,112 +1,104 @@
-# Brightloop Subscription Management System
+# Brightloop: Subscription Management System
 
-Django + PostgreSQL + HTMX/Alpine/Tailwind. Modular monolith (`apps/<module>/{models,services,selectors,views}`).
+A subscription billing system: catalog and plans, quotations, a subscription lifecycle, an idempotent billing
+engine, invoices, payments, reports and a customer portal.
 
-## Run locally (Windows)
+**Stack:** Django 5.1, PostgreSQL, HTMX, Alpine.js, Tailwind (CDN). One modular monolith, no external services.
+
+| Read this | For |
+|---|---|
+| [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md) | A 7-minute demo, step by step |
+| [docs/WALKTHROUGH.md](docs/WALKTHROUGH.md) | Every screen and path, in the order you would use them |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Design, state machines, the billing engine, security, trade-offs |
+| [docs/ERD.md](docs/ERD.md) | Database diagram and constraints |
+| [docs/PERFORMANCE.md](docs/PERFORMANCE.md) | Measured timings with 10,000 subscriptions and 30,000 invoices |
+| [docs/GIT_WORKFLOW.md](docs/GIT_WORKFLOW.md) | Branches and commits |
+
+## Run it (Windows, VS Code terminal)
 
 ```
 python -m venv venv
 venv\Scripts\activate
 pip install -r requirements-dev.txt
-copy .env.example .env      # then set DB_PASSWORD
+copy .env.example .env          # then set DB_PASSWORD
+createdb -U postgres brightloop # or create the database in pgAdmin
+python manage.py migrate
+python manage.py createsuperuser
 python manage.py runserver
 ```
 
-Create the database first: `createdb -U postgres brightloop` (or via pgAdmin).
+Open http://127.0.0.1:8000. The superuser gets the **Admin** role.
+Password reset and invoice emails print in the terminal running `runserver` (console email backend).
 
-## Accounts (step 2)
+### With demo data
 
 ```
-python manage.py migrate
-python manage.py createsuperuser      # email, full name, password; gets role "admin"
-python manage.py test                 # needs CREATE DATABASE rights on your postgres user
+python manage.py seed_demo_data --reset-demo
 ```
-Sign up at `/accounts/signup/`. Password reset emails print in the terminal running `runserver` (console backend).
 
-## People and access (step 3)
+Loads about 10,000 subscriptions, 32,000 invoices and 25,000 payments in about 30 seconds and verifies them. Sign in as
+`admin@demo.example`, `staff@demo.example` or `customer00001@demo.example` (password `Demo!Pass123`).
 
-| Role | Can do |
+## Commands
+
+| Command | What it does |
 |---|---|
-| Admin | Everything, including adding/deactivating staff (`/staff/`) |
-| Staff | Customer directory (`/customers/`) and, in later steps, day-to-day billing work |
-| Customer | Only their own subscriptions and invoices (portal) |
+| `python manage.py test` | Runs the whole test suite (a few minutes; needs CREATE DATABASE rights for your PostgreSQL user) |
+| `python manage.py run_billing [--dry-run] [--date YYYY-MM-DD]` | Bills every due subscription; safe to run repeatedly (cron-friendly) |
+| `python manage.py seed_demo_data [--subscriptions N] [--reset-demo]` | Loads demo data |
+| `python manage.py verify_data` | Checks that invoices, lines, payments, discounts and subscriptions add up |
+| `python manage.py perf_check [--billing] [--explain] [--markdown]` | Times the main pages and the billing run |
+| `python manage.py check --deploy` | Django's production security check (use `DJANGO_SETTINGS_MODULE=config.settings.prod`) |
 
-Access rules live in `apps/core/permissions.py` (roles) and `apps/core/scoping.py` (own-rows-only for customers).
-Sensitive actions are recorded in the audit log (`core.AuditLog`, read-only in Django admin).
+The same commands are available as VS Code tasks (Terminal, Run Task).
 
-## Catalog and taxes (step 4)
+## Features
 
-| Page | URL | Admin | Staff |
-|---|---|---|---|
-| Products (with variants) | `/catalog/products/` | create, edit, activate/deactivate | view |
-| Plans | `/catalog/plans/` | create, edit, activate/deactivate | view |
-| Taxes + calculator | `/taxes/` | create, edit, activate/deactivate | view |
+| Area | What it does |
+|---|---|
+| Accounts | Sign-up, login, password reset (single use, 1 hour), password rules, admin-created staff, rate limits |
+| Roles | **Admin** (everything), **Staff** (day-to-day: customers, subscriptions, invoices, payments, reports), **Customer** (own data only) |
+| Catalog | Products with variants and extra prices, plans (daily, weekly, monthly, yearly) with minimum quantity, dates, auto-close, closable, pausable, renewable |
+| Taxes | Percentage or fixed, calculator, applied after discounts |
+| Discounts | Percentage or fixed, product or whole-subscription scope, date range, minimum purchase or quantity, usage limit; best single discount wins |
+| Subscriptions | Quotation templates, Draft, Quotation, Confirmed, Active, Paused, Closed, history, renewals, plan-driven rules and guards |
+| Billing | Idempotent engine (row locks plus a unique constraint), catch-up of missed periods, auto-close at the end date, button and command |
+| Invoices | Snapshot of every price and rate, print view, email, cancel, derived overdue status |
+| Payments | Cash, bank, card, UPI; part payments; invoices turn Paid automatically; void with audit; outstanding and overdue totals |
+| Reports | MRR, active subscriptions, invoiced, collected, outstanding, overdue, payments by method, monthly trend; period and plan filters; CSV exports |
+| Portal | Customers see their own subscriptions, invoices, payments and print view |
+| Audit | Append-only log of sensitive actions, read-only in the Django admin |
 
-Design notes:
-- Money is `Decimal`, rounded half-up to 2 places in one place (`apps/core/money.py`).
-- Tax rules (`apps/taxes/calculator.py`): tax is computed on the amount after discounts; several taxes use the same base (no compounding); a fixed tax is a flat amount per line.
-- Final variant price = product sales price + variant extra price.
-- Products, plans, taxes and variants are deactivated, never deleted, so later invoices can always refer to them.
-- Names are unique ignoring case, enforced by the database as well as the forms.
-- Every change is written to the audit log with before/after values.
+## Roles at a glance
 
-## Discounts (step 5)
+| | Admin | Staff | Customer |
+|---|:-:|:-:|:-:|
+| Staff accounts, products, plans, taxes, discounts, templates (create or edit) | yes | view | no |
+| Customers, subscriptions, invoices, payments, reports | yes | yes | no |
+| Run billing, cancel invoice, void payment | yes | no | no |
+| Own subscriptions, invoices and payments | n/a | n/a | yes |
 
-`/discounts/`: admin creates and edits, staff view. Discount rules live in `apps/discounts/engine.py`:
-- Applies only when active, inside its date range (inclusive), not used up, and the quantity and amount it covers reach the minimums.
-- "Selected products" discounts look only at lines of those products; "Whole subscription" discounts look at every line. Amounts are before tax.
-- Percentage = base x value / 100. Fixed = the value, capped at the base.
-- No stacking: the eligible discount with the biggest saving wins; ties go to the older one.
-- `services.redeem()` uses up one redemption with a single guarded UPDATE, so parallel invoices can never pass the usage limit (a database CHECK backs it up). The billing engine (step 7) calls it.
-- `engine.explain()` returns the reason each discount was skipped, for debugging.
+## Project layout
 
-## Subscriptions (step 6)
+```
+config/                 settings (base, dev, prod), root URLs
+apps/
+  core/                 audit, number sequences, money, permissions, scoping
+  accounts/ taxes/ catalog/ discounts/ subscriptions/ billing/ payments/
+  reports/ portal/      dashboards, exports, customer pages
+  demo/                 seed data, integrity checks, performance check
+templates/ static/      HTMX + Alpine + Tailwind pages
+docs/                   design, ERD, performance, walkthrough, demo script
+```
 
-`/subscriptions/` (admin and staff) and `/quotation-templates/` (admin edits, staff view).
+Every feature app has `models.py`, `services.py` (all writes), `selectors.py` (all reads), thin `views.py`, and `tests/`.
 
-- Status flow: Draft, Quotation, Confirmed, Active, Closed, plus Paused. One table of allowed moves in `apps/subscriptions/workflow.py`; every move is locked, checked, written to the status history and the audit log.
-- Plan rules drive the buttons: Pause needs `pausable`, early Close needs `closable`. Automatic closing at the end date (step 7) bypasses `closable`.
-- Confirming checks: at least one line, minimum quantity per line, plan active and in its date window, quotation not expired, customer active. All problems are shown together.
-- Pricing order (`apps/subscriptions/pricing.py`): discount first (best single discount, shared across lines in proportion), tax after. The billing engine reuses it, so previews match invoices.
-- Line prices are snapshots; a later price change never alters an existing line.
-- Numbers (`SUB-00001`) come from a row-locked counter in `apps/core/sequences.py`.
-- Resuming a paused subscription never back-bills the paused time.
-- Payment terms (Immediate, 15, 30, 45 days) are seeded by a migration; edit them in Django admin.
-- A customer-scoped selector already exists (`selectors.subscription_queryset(user)`); the portal in step 9 will use it.
+## Key design decisions
 
-## Billing and invoices (step 7)
+* **Money is `Decimal`** with one rounding rule (half-up, 2 places); invoices store copies of prices, rates and names so history never changes.
+* **Nothing is billed twice:** row lock with `SKIP LOCKED`, an existence check, and `UNIQUE (subscription, period_start)`.
+* **Derived, not stored:** overdue status and outstanding balances are computed from due dates and payments.
+* **Rules live in one place:** the subscription state machine, the discount engine and the pricing function are pure and unit-tested; previews and invoices share them.
+* **Defence in depth:** every view is role-checked and every service re-checks the role; customers are scoped to their own rows in one helper.
 
-`/billing/` (admin: run billing), `/invoices/` (admin and staff), and `python manage.py run_billing [--dry-run] [--date YYYY-MM-DD]`.
-
-Rules (`apps/billing/engine.py`):
-- Due = Active and next billing date reached. Billing is in advance, one invoice per period, whole periods only (no proration).
-- Each invoice is created in its own transaction together with moving the next billing date on and using up the discount, so a failure leaves nothing half-done.
-- `SELECT ... FOR UPDATE SKIP LOCKED` on the subscription means two runs at once never bill the same subscription. `UNIQUE(subscription, period_start)` in the database is the last line of defence, and a period that already has an invoice only gets its date moved on.
-- A subscription several periods behind is caught up one invoice per period (at most 24 per run). Monthly and yearly dates stay on the start day (31 Jan, 28 Feb, 31 Mar).
-- Discounts valid on the first day of the billed period are considered; the best one that can still be redeemed is used.
-- Invoices copy names, prices, tax rates and the discount, so later changes never alter them. A cancelled invoice keeps its period billed.
-- After the last period: Auto-close plans are closed by the system; others stop billing and stay Active.
-- One failing subscription never stops the run; it is logged and shown in the summary.
-- Overdue is derived (confirmed, unpaid, past due date), never stored.
-- Paying an invoice (and marking it Paid automatically) arrives with payments in step 8.
-
-## Payments (step 8)
-
-`/payments/` (admin and staff), `/payments/record/<invoice id>/`, and a Payments box on every invoice.
-
-- Methods: cash, bank transfer, card, UPI. Part payments are supported; one payment belongs to one invoice.
-- Recording locks the invoice row first, so parallel payments can never take an invoice past its total (a test fires six at once). The database also refuses `amount_paid` above `total`.
-- `amount_paid` is always recalculated from the live (non-voided) payments, never incremented. The invoice becomes Paid when they reach the total and goes back to Confirmed if a payment is voided.
-- Payments are never edited or deleted. Admin voids a mistake with a reason; it is audited.
-- Outstanding = balance on confirmed invoices; Overdue = the same with a due date before today (derived, never stored); Collected = live payments in a date range (`apps/payments/selectors.py`). The reports in step 9 reuse these.
-- Zero-total invoices (100% discount) are created Paid.
-
-## Reports, dashboard and customer portal (step 9)
-
-**Dashboard and reports** (`/` for admin and staff, `/reports/`): every figure is a database aggregate (`apps/reports/metrics.py`), so the number of queries does not grow with the amount of data (a test checks this).
-- MRR: line amounts (quantity x price, before discounts and tax) of Active subscriptions, normalised to a month: yearly / 12, weekly x 52/12, daily x 365/12.
-- Invoiced: invoices issued in the period, without drafts and cancelled ones. Collected: payments dated in the period, without voided ones. Outstanding and overdue: balance on confirmed invoices as of today.
-- Filters: period presets or a custom range, and a plan.
-- CSV exports (`/reports/export/<invoices|payments|subscriptions|overdue>/`): streamed in chunks, UTF-8 with BOM for Excel, cells starting with `= + - @` are prefixed with a quote so spreadsheets never run them as formulas, and each export is audited.
-
-**Customer portal** (`/portal/...`): read-only "My subscriptions" and "My invoices" (with payments received and a print view). Everything goes through `apps/core/scoping.py`, drafts are hidden, and internal pages stay closed to customers. The home page (`apps/core/views.py`) hands over to the business dashboard or the portal dashboard by role.
+Known limits (no proration, no credit notes, read-only portal, synchronous billing run) and what comes next are listed in `docs/ARCHITECTURE.md`.

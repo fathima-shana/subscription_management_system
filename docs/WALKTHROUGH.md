@@ -100,3 +100,11 @@ admin, and a private (incognito) window for the staff member or customer, so the
 4. An invoice page (`/portal/invoices/<id>/`) shows the lines, totals, balance due and the payments received (voided ones are hidden). **Print or save as PDF** opens a clean page: use the browser's Print, then choose Save as PDF.
 5. Filter invoices by Unpaid, Overdue or Paid, and search by number.
 6. A customer can only ever open their own records. Another customer's id, or any back-office page, gives a 404 or the 403 page.
+
+## 10. Demo data and checks (step 10)
+1. `python manage.py seed_demo_data --reset-demo` loads about 10,000 subscriptions, 2,500 customers, 32,000 invoices and 25,000 payments in about 30 seconds, then checks that every invoice, line and payment adds up. Use `--subscriptions 500` for a small set. The same `--seed` always produces the same data.
+2. Sign in with `admin@demo.example`, `staff@demo.example` or `customer00001@demo.example`; the password for all is `Demo!Pass123`.
+3. `/billing/` now shows about 185 subscriptions due today. Run billing to see a large run, then run it again to see that nothing is billed twice.
+4. `python manage.py verify_data` checks the books at any time: invoice totals against their lines, `amount_paid` against the payments, statuses, discount usage and subscription dates.
+5. `python manage.py perf_check --billing --explain` times every main page and the billing run, and prints the query plans. See `docs/PERFORMANCE.md`.
+6. `--reset-demo` removes only the `@demo.example` customers and their data, never anything else.

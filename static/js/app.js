@@ -35,3 +35,15 @@
     window.toast(`Request failed (${e.detail.xhr.status}). Please try again.`, "error");
   });
 })();
+
+// Dim the area being refreshed while an HTMX request is in flight (a light-weight loading state).
+(function () {
+  document.body.addEventListener("htmx:beforeRequest", (e) => {
+    const t = e.detail.target;
+    if (t && t.id) t.classList.add("opacity-60", "transition-opacity");
+  });
+  document.body.addEventListener("htmx:afterRequest", (e) => {
+    const t = e.detail.target;
+    if (t && t.id) t.classList.remove("opacity-60");
+  });
+})();

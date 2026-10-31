@@ -19,6 +19,30 @@
       "command": "${workspaceFolder}/venv/Scripts/python.exe manage.py test",
       "group": "test",
       "problemMatcher": []
+    },
+    {
+      "label": "seed demo data",
+      "type": "shell",
+      "command": "${workspaceFolder}/venv/Scripts/python.exe manage.py seed_demo_data --reset-demo",
+      "problemMatcher": []
+    },
+    {
+      "label": "run billing",
+      "type": "shell",
+      "command": "${workspaceFolder}/venv/Scripts/python.exe manage.py run_billing",
+      "problemMatcher": []
+    },
+    {
+      "label": "verify data",
+      "type": "shell",
+      "command": "${workspaceFolder}/venv/Scripts/python.exe manage.py verify_data",
+      "problemMatcher": []
+    },
+    {
+      "label": "perf check",
+      "type": "shell",
+      "command": "${workspaceFolder}/venv/Scripts/python.exe manage.py perf_check --billing",
+      "problemMatcher": []
     }
   ]
 }
