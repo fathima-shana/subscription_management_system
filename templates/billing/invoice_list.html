@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-4 flex flex-wrap items-center gap-3">
+  <input type="hidden" id="status-filter" name="status" value="{{ status }}">
+  {% url 'invoices:list' as list_url %}
+  {% include "partials/search_box.html" with url=list_url target="invoice-results" placeholder="Search by invoice, subscription or customer" include="#status-filter" %}
+  {% if user.is_admin %}<a href="{% url 'billing:home' %}" class="ml-auto rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700">Run billing</a>{% endif %}
+</div>
+<div class="mb-4 flex flex-wrap gap-2 text-sm">
+  <a href="?q={{ q|urlencode }}" class="rounded-full px-3 py-1 ring-1 ring-inset {% if not status %}bg-brand-50 text-brand-700 ring-brand-100{% else %}bg-white text-slate-600 ring-slate-200 hover:bg-slate-50{% endif %}">All</a>
+  {% for f in filters %}
+  <a href="?status={{ f }}&q={{ q|urlencode }}" class="rounded-full px-3 py-1 capitalize ring-1 ring-inset {% if status == f %}bg-brand-50 text-brand-700 ring-brand-100{% else %}bg-white text-slate-600 ring-slate-200 hover:bg-slate-50{% endif %}">{{ f }}</a>
+  {% endfor %}
+</div>
+<div id="invoice-results">{% include "billing/_invoice_results.html" %}</div>
+{% endblock %}

@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "apps.catalog",
     "apps.discounts",
     "apps.subscriptions",
+    "apps.billing",
 ]
 
 MIDDLEWARE = [

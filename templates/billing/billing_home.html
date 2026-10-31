@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load ui %}
+
+{% block content %}
+<div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+  <div class="flex flex-wrap items-center gap-4">
+    <div>
+      <h2 class="text-lg font-semibold">Run billing</h2>
+      <p class="mt-1 text-sm text-slate-600">Creates an invoice for every active subscription whose next billing date is today or earlier. It is safe to run again: a period is never billed twice.</p>
+    </div>
+    <form method="post" action="{% url 'billing:run' %}" class="ml-auto" onsubmit="return confirm('Create invoices for all due subscriptions now?')">
+      {% csrf_token %}
+      <button class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700">Run billing now</button>
+    </form>
+  </div>
+  <p class="mt-4 text-sm"><span class="text-2xl font-semibold tabular-nums">{{ due_count }}</span> <span class="text-slate-600">subscription{{ due_count|pluralize }} due on {{ today|date:"d M Y" }}</span></p>
+  {% if due %}
+  <ul class="mt-3 divide-y divide-slate-100 rounded-lg border border-slate-200 text-sm">
+    {% for s in due %}<li class="flex justify-between px-4 py-2"><a class="font-medium text-brand-700 hover:underline" href="{% url 'subscriptions:detail' s.pk %}">{{ s.number }}</a><span class="text-slate-600">{{ s.customer.company_name|default:s.customer.user.full_name }}</span><span class="tabular-nums text-slate-500">due {{ s.next_billing_date|date:"d M Y" }}</span></li>{% endfor %}
+  </ul>
+  {% if due_count > 15 %}<p class="mt-2 text-xs text-slate-500">Showing the first 15.</p>{% endif %}
+  {% endif %}
+</div>
+
+{% if last_run %}
+<section class="mt-6 rounded-xl border border-slate-200 bg-white shadow-sm">
+  <div class="border-b border-slate-200 px-6 py-4">
+    <h3 class="font-semibold">Result of the last run ({{ last_run.today }})</h3>
+    <p class="mt-1 text-sm text-slate-600"><strong>{{ last_run.created|length }}</strong> invoice{{ last_run.created|length|pluralize }} created, total <strong>{{ last_run.total_billed|floatformat:2 }}</strong> &middot; {{ last_run.closed|length }} closed &middot; {{ last_run.ended|length }} stopped &middot; {{ last_run.healed|length }} already billed &middot; <span class="{% if last_run.failed %}font-semibold text-rose-700{% endif %}">{{ last_run.failed|length }} failed</span></p>
+  </div>
+  {% if last_run.failed %}
+  <div class="border-b border-rose-100 bg-rose-50 px-6 py-3 text-sm text-rose-800">
+    {% for number, message in last_run.failed %}<p><strong>{{ number }}</strong>: {{ message }}</p>{% endfor %}
+  </div>
+  {% endif %}
+  {% if last_run.created %}
+  <ul class="divide-y divide-slate-100 text-sm">
+    {% for id, number, sub, total in last_run.created %}<li class="flex justify-between px-6 py-2"><a class="font-medium text-brand-700 hover:underline" href="{% url 'invoices:detail' id %}">{{ number }}</a><span class="text-slate-600">{{ sub }}</span><span class="tabular-nums">{{ total }}</span></li>{% endfor %}
+  </ul>
+  {% else %}<p class="px-6 py-6 text-sm text-slate-500">Nothing was due, so no invoices were created.</p>{% endif %}
+</section>
+{% endif %}
+{% endblock %}

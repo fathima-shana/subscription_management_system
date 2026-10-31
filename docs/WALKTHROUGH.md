@@ -56,3 +56,18 @@ admin, and a private (incognito) window for the staff member or customer, so the
 5. Confirm is refused, with all reasons listed, if there are no lines, a line is below the plan minimum quantity, the plan is inactive or outside its dates, the quotation has expired, or the customer is deactivated.
 6. After Confirm the header and lines are locked. **Renew** (active or closed, renewable plan) creates a new draft at today's prices.
 7. `/subscriptions/` lists everything: filter by status, search by number, customer or company.
+
+## 6. Billing and invoices (step 7)
+1. Make sure a subscription is **Active** (see section 5). On activation its Next billing date is its start date, so it is due today.
+2. As admin open **Billing** (`/billing/`). It lists what is due today. Click **Run billing now** and confirm.
+3. The result summary shows the invoices created, the total billed, anything closed or stopped, and any failures with the reason. It is shown once.
+4. Click **Run billing now** again: 0 invoices are created. A period is never billed twice.
+5. **Invoices** (`/invoices/`, admin and staff): filter by Draft, Confirmed, Overdue, Paid or Cancelled; search by invoice number, subscription or customer.
+6. Open an invoice (`/invoices/<id>/`): customer, plan, period, due date (issue date plus the payment term), lines with discount and tax, totals, and the balance due.
+   - **Print view** opens a clean page; use its Print button.
+   - **Send to customer** emails the summary. In development the email prints in the terminal running `runserver`.
+   - **Cancel invoice** (admin, and only while nothing is paid). The period stays billed and will not be invoiced again.
+7. Go back to the subscription page: the new invoice is listed under **Invoices**, and Next billing has moved on by one period.
+8. Overdue is never stored: a confirmed invoice with an unpaid balance and a due date in the past shows as **overdue** automatically.
+9. From the terminal (for a cron job): `python manage.py run_billing`. Options: `--dry-run` lists what is due without changing anything; `--date 2026-12-31` bills as if that were today.
+10. End of a subscription: if its expiry date is reached and the plan has **Auto-close**, the system closes it after the last period (history note "Reached end date"). Without Auto-close, billing simply stops and the subscription stays Active until someone closes it.

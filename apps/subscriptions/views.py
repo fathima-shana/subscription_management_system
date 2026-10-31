@@ -88,6 +88,7 @@ def _detail_ctx(request, sub, line_form=None):
         "actions": available_transitions(sub),
         "stepper": STEPPER,
         "history": sub.history.select_related("changed_by"),
+        "invoices": sub.invoices.order_by("-period_start")[:12],
         "can_renew": sub.status in (Status.ACTIVE, Status.CLOSED) and sub.plan.renewable,
         "today": today,
     }

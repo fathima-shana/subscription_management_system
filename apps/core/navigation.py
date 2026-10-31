@@ -17,6 +17,8 @@ ICONS = {
     "tag": "M20.6 13.4l-7.2 7.2a2 2 0 01-2.8 0L3 13V3h10l7.6 7.6a2 2 0 010 2.8zM7.5 7.5h.01",
     "refresh": "M4 4v5h5M20 20v-5h-5M5.6 15A8 8 0 0018 17.7M18.4 9A8 8 0 006 6.3",
     "doc": "M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8l-5-5zM14 3v5h5M9 13h6M9 17h6",
+    "receipt": "M6 2h12v20l-3-2-3 2-3-2-3 2V2zM9 7h6M9 11h6M9 15h4",
+    "play": "M5 3l14 9-14 9V3z",
     "percent": "M19 5L5 19M7.5 9a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM16.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z",
 }
 
@@ -34,11 +36,13 @@ NAV_ITEMS = [
     NavItem("Dashboard", "core:home", ALL, "home", exact=True),
     NavItem("Customers", "customers:list", INTERNAL, "users"),
     NavItem("Subscriptions", "subscriptions:list", INTERNAL, "refresh"),
+    NavItem("Invoices", "invoices:list", INTERNAL, "receipt"),
     NavItem("Products", "catalog:product_list", INTERNAL, "box"),
     NavItem("Plans", "catalog:plan_list", INTERNAL, "repeat"),
     NavItem("Templates", "qtemplates:list", INTERNAL, "doc"),
     NavItem("Taxes", "taxes:list", INTERNAL, "percent"),
     NavItem("Discounts", "discounts:list", INTERNAL, "tag"),
+    NavItem("Billing", "billing:home", ADMIN, "play"),
     NavItem("Staff", "staff:list", ADMIN, "shield"),
 ]
 
