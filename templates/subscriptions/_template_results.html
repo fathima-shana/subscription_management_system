@@ -1,0 +1,29 @@
+{% load ui %}
+<div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+  {% if page_obj.object_list %}
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-slate-200 text-sm">
+      <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <tr><th class="px-4 py-3">Template</th><th class="px-4 py-3">Plan</th><th class="px-4 py-3 text-right">Products</th><th class="px-4 py-3 text-right">Valid for</th><th class="px-4 py-3">Status</th></tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for t in page_obj %}
+        <tr class="hover:bg-slate-50">
+          <td class="px-4 py-3 font-medium"><a href="{% url 'qtemplates:detail' t.pk %}" class="text-slate-900 hover:text-brand-700">{{ t.name }}</a></td>
+          <td class="px-4 py-3 text-slate-600">{{ t.plan.name }}</td>
+          <td class="px-4 py-3 text-right tabular-nums text-slate-600">{{ t.line_count }}</td>
+          <td class="px-4 py-3 text-right tabular-nums text-slate-600">{{ t.validity_days }} days</td>
+          <td class="px-4 py-3">{% if t.is_active %}<span class="rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset {% badge_classes 'active' %}">Active</span>{% else %}<span class="rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset {% badge_classes 'closed' %}">Inactive</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "partials/pagination.html" %}
+  {% else %}
+  <div class="px-6 py-14 text-center">
+    <p class="font-medium text-slate-900">{% if q %}No templates match "{{ q }}"{% else %}No templates yet{% endif %}</p>
+    <p class="mt-1 text-sm text-slate-500">{% if q %}Try a different name.{% elif user.is_admin %}A template saves you re-entering the same plan and products for each quotation.{% else %}An admin needs to add templates.{% endif %}</p>
+  </div>
+  {% endif %}
+</div>

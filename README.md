@@ -59,3 +59,17 @@ Design notes:
 - No stacking: the eligible discount with the biggest saving wins; ties go to the older one.
 - `services.redeem()` uses up one redemption with a single guarded UPDATE, so parallel invoices can never pass the usage limit (a database CHECK backs it up). The billing engine (step 7) calls it.
 - `engine.explain()` returns the reason each discount was skipped, for debugging.
+
+## Subscriptions (step 6)
+
+`/subscriptions/` (admin and staff) and `/quotation-templates/` (admin edits, staff view).
+
+- Status flow: Draft, Quotation, Confirmed, Active, Closed, plus Paused. One table of allowed moves in `apps/subscriptions/workflow.py`; every move is locked, checked, written to the status history and the audit log.
+- Plan rules drive the buttons: Pause needs `pausable`, early Close needs `closable`. Automatic closing at the end date (step 7) bypasses `closable`.
+- Confirming checks: at least one line, minimum quantity per line, plan active and in its date window, quotation not expired, customer active. All problems are shown together.
+- Pricing order (`apps/subscriptions/pricing.py`): discount first (best single discount, shared across lines in proportion), tax after. The billing engine reuses it, so previews match invoices.
+- Line prices are snapshots; a later price change never alters an existing line.
+- Numbers (`SUB-00001`) come from a row-locked counter in `apps/core/sequences.py`.
+- Resuming a paused subscription never back-bills the paused time.
+- Payment terms (Immediate, 15, 30, 45 days) are seeded by a migration; edit them in Django admin.
+- A customer-scoped selector already exists (`selectors.subscription_queryset(user)`); the portal in step 9 will use it.

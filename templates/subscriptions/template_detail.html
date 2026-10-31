@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load ui %}
+
+{% block content %}
+<a href="{% url 'qtemplates:list' %}" class="text-sm font-medium text-brand-600 hover:text-brand-700">&larr; Back to templates</a>
+<div class="mt-3 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+  <div class="flex flex-wrap items-start gap-3">
+    <div>
+      <h2 class="text-xl font-semibold tracking-tight">{{ template.name }}</h2>
+      <p class="mt-1 text-sm text-slate-500">{{ template.plan.name }} ({{ template.plan.get_billing_period_display }}) &middot; quotation valid for {{ template.validity_days }} days</p>
+    </div>
+    {% if template.is_active %}<span class="rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset {% badge_classes 'active' %}">Active</span>{% else %}<span class="rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset {% badge_classes 'closed' %}">Inactive</span>{% endif %}
+    {% if user.is_admin %}
+    <div class="ml-auto flex gap-2">
+      <a href="{% url 'qtemplates:edit' template.pk %}" class="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">Edit</a>
+      <form method="post" action="{% url 'qtemplates:toggle_active' template.pk %}">{% csrf_token %}<input type="hidden" name="active" value="{% if template.is_active %}0{% else %}1{% endif %}">
+        <button class="rounded-lg border px-3 py-1.5 text-sm font-medium {% if template.is_active %}border-rose-200 text-rose-700 hover:bg-rose-50{% else %}border-emerald-200 text-emerald-700 hover:bg-emerald-50{% endif %}">{% if template.is_active %}Deactivate{% else %}Reactivate{% endif %}</button></form>
+    </div>
+    {% endif %}
+  </div>
+  {% if template.notes %}<p class="mt-4 whitespace-pre-line text-sm text-slate-600">{{ template.notes }}</p>{% endif %}
+</div>
+{% include "subscriptions/_template_lines.html" %}
+{% endblock %}

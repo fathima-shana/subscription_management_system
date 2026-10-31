@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load ui %}
+
+{% block content %}
+<a href="{% url 'subscriptions:list' %}" class="text-sm font-medium text-brand-600 hover:text-brand-700">&larr; Back to subscriptions</a>
+
+<div class="mt-3 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+  <div class="flex flex-wrap items-start gap-3">
+    <div>
+      <h2 class="text-xl font-semibold tracking-tight">{{ sub.number }}</h2>
+      <p class="mt-1 text-sm text-slate-600">{{ sub.customer.company_name|default:sub.customer.user.full_name }} &middot; {{ sub.customer.user.email }}</p>
+    </div>
+    <span class="rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ring-1 ring-inset {% badge_classes sub.status %}">{{ sub.status }}</span>
+    <div class="ml-auto flex flex-wrap gap-2">
+      {% if sub.is_editable %}<a href="{% url 'subscriptions:edit' sub.pk %}" class="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">Edit</a>{% endif %}
+      {% if can_renew %}
+      <form method="post" action="{% url 'subscriptions:renew' sub.pk %}">{% csrf_token %}<button class="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">Renew</button></form>
+      {% endif %}
+      {% for to, label in actions %}
+      <form method="post" action="{% url 'subscriptions:transition' sub.pk %}"
+            {% if to == 'closed' %}onsubmit="return confirm('Close {{ sub.number }}? Billing stops and it cannot be reopened.')"{% endif %}>
+        {% csrf_token %}<input type="hidden" name="to" value="{{ to }}">
+        <button class="rounded-lg px-3 py-1.5 text-sm font-semibold shadow-sm {% if to == 'closed' %}border border-rose-200 bg-white text-rose-700 hover:bg-rose-50{% elif to == 'draft' or to == 'paused' %}border border-slate-300 bg-white text-slate-700 hover:bg-slate-50{% else %}bg-brand-600 text-white hover:bg-brand-700{% endif %}">{{ label }}</button>
+      </form>
+      {% endfor %}
+    </div>
+  </div>
+
+  <ol class="mt-6 flex flex-wrap items-center gap-2 text-xs font-medium" aria-label="Progress">
+    {% for step in stepper %}
+      <li class="flex items-center gap-2">
+        <span class="rounded-full px-3 py-1 ring-1 ring-inset {% if step == sub.status or step == 'active' and sub.status == 'paused' %}bg-brand-600 text-white ring-brand-600{% else %}bg-white text-slate-500 ring-slate-200{% endif %}">{{ step|capfirst }}{% if step == 'active' and sub.status == 'paused' %} (paused){% endif %}</span>
+        {% if not forloop.last %}<span class="text-slate-300">&rarr;</span>{% endif %}
+      </li>
+    {% endfor %}
+  </ol>
+
+  <dl class="mt-6 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
+    <div><dt class="text-slate-500">Plan</dt><dd class="mt-0.5 font-medium">{{ sub.plan.name }} <span class="text-slate-500">({{ sub.plan.get_billing_period_display }})</span></dd></div>
+    <div><dt class="text-slate-500">Payment term</dt><dd class="mt-0.5 font-medium">{{ sub.payment_term.name }}</dd></div>
+    <div><dt class="text-slate-500">Start date</dt><dd class="mt-0.5 font-medium">{{ sub.start_date|date:"d M Y" }}</dd></div>
+    <div><dt class="text-slate-500">Expiry date</dt><dd class="mt-0.5 font-medium">{{ sub.expiry_date|date:"d M Y"|default:"Open-ended" }}</dd></div>
+    <div><dt class="text-slate-500">Next billing</dt><dd class="mt-0.5 font-medium">{{ sub.next_billing_date|date:"d M Y"|default:"-" }}</dd></div>
+    {% if sub.is_editable %}<div><dt class="text-slate-500">Quotation valid until</dt><dd class="mt-0.5 font-medium">{{ sub.quote_valid_until|date:"d M Y"|default:"No limit" }}</dd></div>{% endif %}
+    {% if sub.template %}<div><dt class="text-slate-500">From template</dt><dd class="mt-0.5 font-medium">{{ sub.template.name }}</dd></div>{% endif %}
+    {% if sub.renewed_from %}<div><dt class="text-slate-500">Renewal of</dt><dd class="mt-0.5 font-medium"><a class="text-brand-700 hover:underline" href="{% url 'subscriptions:detail' sub.renewed_from_id %}">{{ sub.renewed_from.number }}</a></dd></div>{% endif %}
+  </dl>
+  {% if sub.notes %}<p class="mt-4 whitespace-pre-line border-t border-slate-100 pt-4 text-sm text-slate-600">{{ sub.notes }}</p>{% endif %}
+</div>
+
+{% include "subscriptions/_lines.html" %}
+
+<section class="mt-6 rounded-xl border border-slate-200 bg-white shadow-sm">
+  <div class="border-b border-slate-200 px-6 py-4"><h3 class="font-semibold">History</h3></div>
+  <ul class="divide-y divide-slate-100 text-sm">
+    {% for h in history %}
+    <li class="flex flex-wrap items-center gap-x-3 gap-y-1 px-6 py-3">
+      <span class="text-slate-500 tabular-nums">{{ h.changed_at|date:"d M Y H:i" }}</span>
+      <span>{% if h.from_status %}<span class="capitalize">{{ h.from_status }}</span> &rarr; {% endif %}<span class="font-medium capitalize">{{ h.to_status }}</span></span>
+      <span class="text-slate-500">by {{ h.changed_by.full_name|default:"system" }}</span>
+      {% if h.note %}<span class="text-slate-500">&middot; {{ h.note }}</span>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}

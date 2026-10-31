@@ -12,5 +12,7 @@ urlpatterns = [
     path("catalog/", include("apps.catalog.urls")),
     path("taxes/", include("apps.taxes.urls")),
     path("discounts/", include("apps.discounts.urls")),
+    path("subscriptions/", include("apps.subscriptions.urls")),
+    path("quotation-templates/", include("apps.subscriptions.urls_templates")),
     path("", include("apps.core.urls")),
 ]
