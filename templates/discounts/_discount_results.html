@@ -1,0 +1,50 @@
+{% load ui %}
+<div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+  {% if page_obj.object_list %}
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-slate-200 text-sm">
+      <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <tr>
+          <th class="px-4 py-3">Discount</th><th class="px-4 py-3 text-right">Value</th><th class="px-4 py-3">Applies to</th>
+          <th class="px-4 py-3">Conditions</th><th class="px-4 py-3">Valid</th><th class="px-4 py-3 text-right">Used</th>
+          <th class="px-4 py-3">Status</th>{% if user.is_admin %}<th class="px-4 py-3 text-right">Actions</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for d in page_obj %}
+        <tr>
+          <td class="px-4 py-3 font-medium text-slate-900">{{ d.name }}</td>
+          <td class="px-4 py-3 text-right tabular-nums">{{ d.value_label }}</td>
+          <td class="px-4 py-3 text-slate-600">{% if d.applies_to == 'product' %}{{ d.target_count }} product{{ d.target_count|pluralize }}{% else %}Whole subscription{% endif %}</td>
+          <td class="px-4 py-3 text-xs text-slate-600">
+            {% if d.min_purchase > 0 %}<div>Min purchase {{ d.min_purchase|money }}</div>{% endif %}
+            {% if d.min_quantity > 1 %}<div>Min quantity {{ d.min_quantity }}</div>{% endif %}
+            {% if d.min_purchase <= 0 and d.min_quantity <= 1 %}None{% endif %}
+          </td>
+          <td class="px-4 py-3 text-slate-600">{% if d.start_date or d.end_date %}{{ d.start_date|date:"d M Y"|default:"any time" }} &ndash; {{ d.end_date|date:"d M Y"|default:"open-ended" }}{% else %}Always{% endif %}</td>
+          <td class="px-4 py-3 text-right tabular-nums text-slate-600">{{ d.used_count }}{% if d.usage_limit %} / {{ d.usage_limit }}{% endif %}</td>
+          <td class="px-4 py-3"><span class="rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ring-1 ring-inset {% badge_classes d.status %}">{{ d.status }}</span></td>
+          {% if user.is_admin %}
+          <td class="px-4 py-3 text-right">
+            <div class="flex justify-end gap-2">
+              <a href="{% url 'discounts:edit' d.pk %}" class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">Edit</a>
+              <form method="post" action="{% url 'discounts:toggle_active' d.pk %}" onsubmit="return {% if d.is_active %}confirm('Deactivate {{ d.name|escapejs }}? It will stop applying to new invoices.'){% else %}true{% endif %}">
+                {% csrf_token %}<input type="hidden" name="active" value="{% if d.is_active %}0{% else %}1{% endif %}">
+                <button class="rounded-lg border px-3 py-1.5 text-xs font-medium {% if d.is_active %}border-rose-200 text-rose-700 hover:bg-rose-50{% else %}border-emerald-200 text-emerald-700 hover:bg-emerald-50{% endif %}">{% if d.is_active %}Deactivate{% else %}Reactivate{% endif %}</button>
+              </form>
+            </div>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "partials/pagination.html" %}
+  {% else %}
+  <div class="px-6 py-14 text-center">
+    <p class="font-medium text-slate-900">{% if q %}No discounts match "{{ q }}"{% else %}No discounts yet{% endif %}</p>
+    <p class="mt-1 text-sm text-slate-500">{% if q %}Try a different name.{% elif user.is_admin %}Add a discount such as 10% off for 5 or more seats.{% else %}An admin needs to add discounts.{% endif %}</p>
+  </div>
+  {% endif %}
+</div>

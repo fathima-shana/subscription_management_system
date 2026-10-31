@@ -49,3 +49,13 @@ Design notes:
 - Products, plans, taxes and variants are deactivated, never deleted, so later invoices can always refer to them.
 - Names are unique ignoring case, enforced by the database as well as the forms.
 - Every change is written to the audit log with before/after values.
+
+## Discounts (step 5)
+
+`/discounts/`: admin creates and edits, staff view. Discount rules live in `apps/discounts/engine.py`:
+- Applies only when active, inside its date range (inclusive), not used up, and the quantity and amount it covers reach the minimums.
+- "Selected products" discounts look only at lines of those products; "Whole subscription" discounts look at every line. Amounts are before tax.
+- Percentage = base x value / 100. Fixed = the value, capped at the base.
+- No stacking: the eligible discount with the biggest saving wins; ties go to the older one.
+- `services.redeem()` uses up one redemption with a single guarded UPDATE, so parallel invoices can never pass the usage limit (a database CHECK backs it up). The billing engine (step 7) calls it.
+- `engine.explain()` returns the reason each discount was skipped, for debugging.

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-5 flex flex-wrap items-center gap-3">
+  {% url 'discounts:list' as list_url %}
+  {% include "partials/search_box.html" with url=list_url target="discount-results" placeholder="Search discounts by name" %}
+  {% if user.is_admin %}
+  <a href="{% url 'discounts:create' %}" class="ml-auto rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700">Add discount</a>
+  {% endif %}
+</div>
+<div id="discount-results">{% include "discounts/_discount_results.html" %}</div>
+{% endblock %}

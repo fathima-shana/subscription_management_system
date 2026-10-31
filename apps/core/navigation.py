@@ -14,6 +14,7 @@ ICONS = {
     "shield": "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
     "box": "M21 8l-9-5-9 5v8l9 5 9-5V8zM3.3 7.5L12 12.5l8.7-5M12 22V12.5",
     "repeat": "M17 2l4 4-4 4M3 11V9a3 3 0 013-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 01-3 3H3",
+    "tag": "M20.6 13.4l-7.2 7.2a2 2 0 01-2.8 0L3 13V3h10l7.6 7.6a2 2 0 010 2.8zM7.5 7.5h.01",
     "percent": "M19 5L5 19M7.5 9a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM16.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z",
 }
 
@@ -33,6 +34,7 @@ NAV_ITEMS = [
     NavItem("Products", "catalog:product_list", INTERNAL, "box"),
     NavItem("Plans", "catalog:plan_list", INTERNAL, "repeat"),
     NavItem("Taxes", "taxes:list", INTERNAL, "percent"),
+    NavItem("Discounts", "discounts:list", INTERNAL, "tag"),
     NavItem("Staff", "staff:list", ADMIN, "shield"),
 ]
 
