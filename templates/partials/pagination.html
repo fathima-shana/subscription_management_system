@@ -4,14 +4,14 @@
   <p class="text-slate-600">Showing {{ page_obj.start_index }}&ndash;{{ page_obj.end_index }} of {{ page_obj.paginator.count }}</p>
   <div class="flex gap-2">
     {% if page_obj.has_previous %}
-      <a href="?q={{ q|urlencode }}&page={{ page_obj.previous_page_number }}"
-         hx-get="?q={{ q|urlencode }}&page={{ page_obj.previous_page_number }}" hx-target="#{{ target }}" hx-push-url="true"
+      <a href="?q={{ q|urlencode }}{% if status %}&status={{ status|urlencode }}{% endif %}&page={{ page_obj.previous_page_number }}"
+         hx-get="?q={{ q|urlencode }}{% if status %}&status={{ status|urlencode }}{% endif %}&page={{ page_obj.previous_page_number }}" hx-target="#{{ target }}" hx-push-url="true"
          class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 font-medium text-slate-700 hover:bg-slate-50">Previous</a>
     {% endif %}
     <span class="px-2 py-1.5 text-slate-500">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
     {% if page_obj.has_next %}
-      <a href="?q={{ q|urlencode }}&page={{ page_obj.next_page_number }}"
-         hx-get="?q={{ q|urlencode }}&page={{ page_obj.next_page_number }}" hx-target="#{{ target }}" hx-push-url="true"
+      <a href="?q={{ q|urlencode }}{% if status %}&status={{ status|urlencode }}{% endif %}&page={{ page_obj.next_page_number }}"
+         hx-get="?q={{ q|urlencode }}{% if status %}&status={{ status|urlencode }}{% endif %}&page={{ page_obj.next_page_number }}" hx-target="#{{ target }}" hx-push-url="true"
          class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 font-medium text-slate-700 hover:bg-slate-50">Next</a>
     {% endif %}
   </div>

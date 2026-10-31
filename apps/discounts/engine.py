@@ -40,14 +40,20 @@ class Applied:
     amount: Decimal  # the saving
 
 
-def _covered(discount, lines):
-    """(quantity, amount) of the lines this discount looks at."""
+def covered_lines(discount, lines):
+    """The lines this discount looks at (all of them, or only the selected products')."""
     if discount.applies_to == AppliesTo.PRODUCT:
         wanted = {p.pk for p in discount.products.all()}  # prefetch-friendly
-        lines = [line for line in lines if line.product_id in wanted]
-        if not lines:
-            return 0, ZERO
-    return sum(line.quantity for line in lines), sum((D(line.amount) for line in lines), ZERO)
+        return [line for line in lines if line.product_id in wanted]
+    return list(lines)
+
+
+def _covered(discount, lines):
+    """(quantity, amount) of the lines this discount looks at."""
+    covered = covered_lines(discount, lines)
+    if not covered:
+        return 0, ZERO
+    return sum(line.quantity for line in covered), sum((D(line.amount) for line in covered), ZERO)
 
 
 def ineligible_reason(discount, lines, on_date=None):

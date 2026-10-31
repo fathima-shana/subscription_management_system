@@ -1,0 +1,70 @@
+{% load ui %}
+<section id="lines" class="mt-6 rounded-xl border border-slate-200 bg-white shadow-sm">
+  <div class="border-b border-slate-200 px-6 py-4">
+    <h3 class="font-semibold text-slate-900">Products</h3>
+    <p class="text-sm text-slate-500">Prices are fixed when a line is added. Amounts below are per billing period.</p>
+  </div>
+
+  {% if priced.lines %}
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-slate-200 text-sm">
+      <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <tr>
+          <th class="px-6 py-3">Product</th><th class="px-4 py-3 text-right">Qty</th><th class="px-4 py-3 text-right">Unit price</th>
+          <th class="px-4 py-3 text-right">Amount</th><th class="px-4 py-3 text-right">Discount</th><th class="px-4 py-3">Tax</th>
+          <th class="px-4 py-3 text-right">Total</th>{% if sub.is_editable %}<th class="px-4 py-3"></th>{% endif %}
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for p in priced.lines %}
+        <tr>
+          <td class="px-6 py-3 font-medium text-slate-900">{{ p.line.label }}</td>
+          <td class="px-4 py-3 text-right tabular-nums">{{ p.line.quantity }}</td>
+          <td class="px-4 py-3 text-right tabular-nums">{{ p.line.unit_price|money }}</td>
+          <td class="px-4 py-3 text-right tabular-nums">{{ p.amount|money }}</td>
+          <td class="px-4 py-3 text-right tabular-nums text-emerald-700">{% if p.discount %}-{{ p.discount|money }}{% else %}-{% endif %}</td>
+          <td class="px-4 py-3 text-slate-600">{% if p.line.tax %}{{ p.line.tax.name }} <span class="tabular-nums">({{ p.tax|money }})</span>{% else %}-{% endif %}</td>
+          <td class="px-4 py-3 text-right font-medium tabular-nums">{{ p.total|money }}</td>
+          {% if sub.is_editable %}
+          <td class="px-4 py-3 text-right">
+            <button type="button" hx-post="{% url 'subscriptions:line_delete' p.line.pk %}" hx-target="#lines" hx-swap="outerHTML"
+                    class="text-xs font-medium text-rose-700 hover:underline">Remove</button>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="flex justify-end border-t border-slate-200 px-6 py-4">
+    <dl class="w-full max-w-xs space-y-1 text-sm">
+      <div class="flex justify-between"><dt class="text-slate-500">Subtotal</dt><dd class="tabular-nums">{{ priced.subtotal|money }}</dd></div>
+      {% if priced.applied %}
+      <div class="flex justify-between text-emerald-700"><dt>Discount: {{ priced.applied.discount.name }}</dt><dd class="tabular-nums">-{{ priced.discount_total|money }}</dd></div>
+      {% endif %}
+      <div class="flex justify-between"><dt class="text-slate-500">Tax</dt><dd class="tabular-nums">{{ priced.tax_total|money }}</dd></div>
+      <div class="flex justify-between border-t border-slate-200 pt-1 text-base font-semibold"><dt>Total per period</dt><dd class="tabular-nums">{{ priced.total|money }}</dd></div>
+      <p class="pt-1 text-xs text-slate-400">Estimate using today's discounts. The invoice uses the discounts valid on the billing date.</p>
+    </dl>
+  </div>
+  {% else %}
+  <p class="px-6 py-8 text-center text-sm text-slate-500">No products yet.{% if sub.is_editable %} Add the first one below.{% endif %}</p>
+  {% endif %}
+
+  {% if sub.is_editable %}
+  <form method="post" action="{% url 'subscriptions:line_create' sub.pk %}" novalidate
+        hx-post="{% url 'subscriptions:line_create' sub.pk %}" hx-target="#lines" hx-swap="outerHTML"
+        class="border-t border-slate-200 bg-slate-50/60 px-6 py-5">
+    {% csrf_token %}
+    <p class="mb-3 text-sm font-medium text-slate-700">Add a product</p>
+    {% include "partials/form_errors.html" with form=line_form %}
+    <div class="grid gap-4 sm:grid-cols-4 sm:items-start">
+      <div class="sm:col-span-2">{% include "partials/form_field.html" with field=line_form.item %}</div>
+      {% include "partials/form_field.html" with field=line_form.quantity %}
+      {% include "partials/form_field.html" with field=line_form.tax %}
+    </div>
+    <div class="mt-4 flex justify-end"><button type="submit" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700">Add product</button></div>
+  </form>
+  {% endif %}
+</section>

@@ -1,0 +1,73 @@
+{% load ui %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Invoice {{ invoice.number }}</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #0f172a; margin: 0; background: #f1f5f9; }
+    .sheet { max-width: 820px; margin: 24px auto; background: #fff; padding: 40px; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+    h1 { margin: 0; font-size: 28px; letter-spacing: -0.02em; }
+    .muted { color: #64748b; font-size: 13px; }
+    .row { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+    table { width: 100%; border-collapse: collapse; margin-top: 28px; font-size: 14px; }
+    th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #64748b; border-bottom: 2px solid #e2e8f0; padding: 8px 6px; }
+    td { padding: 10px 6px; border-bottom: 1px solid #e2e8f0; }
+    .r { text-align: right; font-variant-numeric: tabular-nums; }
+    .totals { margin: 20px 0 0 auto; width: 300px; font-size: 14px; }
+    .totals div { display: flex; justify-content: space-between; padding: 3px 0; }
+    .grand { border-top: 2px solid #0f172a; margin-top: 6px; padding-top: 8px !important; font-weight: 700; font-size: 16px; }
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; text-transform: capitalize; background: #e0e7ff; color: #4338ca; }
+    .bar { max-width: 820px; margin: 16px auto 0; display: flex; gap: 8px; }
+    button { padding: 8px 14px; border-radius: 8px; border: 1px solid #cbd5e1; background: #fff; cursor: pointer; font-size: 14px; }
+    @media print { body { background: #fff; } .sheet { box-shadow: none; margin: 0; max-width: none; padding: 0; } .bar { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="bar"><button onclick="window.print()">Print</button><button onclick="window.close()">Close</button></div>
+  <div class="sheet">
+    <div class="row">
+      <div><h1>Invoice</h1><div class="muted">{{ invoice.number }}</div></div>
+      <div style="text-align:right"><strong>Brightloop</strong><div class="muted">Subscription billing</div><div style="margin-top:6px"><span class="badge">{{ display_status }}</span></div></div>
+    </div>
+    <div class="row" style="margin-top:28px">
+      <div>
+        <div class="muted">Bill to</div>
+        <strong>{{ invoice.bill_to_name }}</strong>
+        {% if invoice.bill_to_address %}<div style="white-space:pre-line">{{ invoice.bill_to_address }}</div>{% endif %}
+        <div class="muted">{{ invoice.bill_to_email }}</div>
+        {% if invoice.bill_to_tax_id %}<div class="muted">Tax ID: {{ invoice.bill_to_tax_id }}</div>{% endif %}
+      </div>
+      <div style="text-align:right;font-size:14px">
+        <div><span class="muted">Issued</span> {{ invoice.issue_date|date:"d M Y" }}</div>
+        <div><span class="muted">Due</span> <strong>{{ invoice.due_date|date:"d M Y" }}</strong> ({{ invoice.payment_term_name }})</div>
+        <div><span class="muted">Period</span> {{ invoice.period_start|date:"d M Y" }} &ndash; {{ invoice.period_end|date:"d M Y" }}</div>
+        <div><span class="muted">Plan</span> {{ invoice.plan_name }}</div>
+        <div><span class="muted">Subscription</span> {{ invoice.subscription.number }}</div>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>Description</th><th class="r">Qty</th><th class="r">Unit price</th><th class="r">Discount</th><th>Tax</th><th class="r">Total</th></tr></thead>
+      <tbody>
+        {% for l in invoice.lines.all %}
+        <tr>
+          <td>{{ l.description }}</td><td class="r">{{ l.quantity }}</td><td class="r">{{ l.unit_price|money }}</td>
+          <td class="r">{% if l.discount_amount %}-{{ l.discount_amount|money }}{% else %}-{% endif %}</td>
+          <td>{% if l.tax_name %}{{ l.tax_name }}{% if l.tax_type == 'percentage' %} {{ l.tax_rate|floatformat:"-2" }}%{% endif %}{% else %}-{% endif %}</td>
+          <td class="r">{{ l.total|money }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="totals">
+      <div><span class="muted">Subtotal</span><span class="r">{{ invoice.subtotal|money }}</span></div>
+      {% if invoice.discount_total %}<div><span class="muted">Discount ({{ invoice.discount_name }})</span><span class="r">-{{ invoice.discount_total|money }}</span></div>{% endif %}
+      <div><span class="muted">Tax</span><span class="r">{{ invoice.tax_total|money }}</span></div>
+      <div class="grand"><span>Total</span><span class="r">{{ invoice.total|money }}</span></div>
+      <div><span class="muted">Paid</span><span class="r">{{ invoice.amount_paid|money }}</span></div>
+      <div><strong>Balance due</strong><strong class="r">{{ invoice.balance|money }}</strong></div>
+    </div>
+    <p class="muted" style="margin-top:36px">Thank you for your business.</p>
+  </div>
+</body>
+</html>

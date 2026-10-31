@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% load ui %}
+
+{% block content %}
+<a href="{% url 'invoices:list' %}" class="text-sm font-medium text-brand-600 hover:text-brand-700">&larr; Back to invoices</a>
+
+<div class="mt-3 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+  <div class="flex flex-wrap items-start gap-3">
+    <div>
+      <h2 class="text-xl font-semibold tracking-tight">{{ invoice.number }}</h2>
+      <p class="mt-1 text-sm text-slate-600">{{ invoice.bill_to_name }} &middot; <a class="text-brand-700 hover:underline" href="{% url 'subscriptions:detail' invoice.subscription_id %}">{{ invoice.subscription.number }}</a></p>
+    </div>
+    <span class="rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ring-1 ring-inset {% badge_classes display_status %}">{{ display_status }}</span>
+    <div class="ml-auto flex flex-wrap gap-2">
+      <a href="{% url 'invoices:print' invoice.pk %}" target="_blank" class="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">Print view</a>
+      {% if invoice.status == 'confirmed' %}<a href="{% url 'payments:create' invoice.pk %}" class="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700">Record payment</a>{% endif %}
+      {% if invoice.status == 'confirmed' or invoice.status == 'paid' %}
+      <form method="post" action="{% url 'invoices:send' invoice.pk %}">{% csrf_token %}<button class="rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-700">{% if invoice.sent_at %}Send again{% else %}Send to customer{% endif %}</button></form>
+      {% endif %}
+      {% if user.is_admin and invoice.status == 'confirmed' and invoice.amount_paid == 0 %}
+      <form method="post" action="{% url 'invoices:cancel' invoice.pk %}" onsubmit="return confirm('Cancel {{ invoice.number }}? The billing period stays billed and will not be invoiced again.')">{% csrf_token %}<button class="rounded-lg border border-rose-200 px-3 py-1.5 text-sm font-medium text-rose-700 hover:bg-rose-50">Cancel invoice</button></form>
+      {% endif %}
+    </div>
+  </div>
+
+  <dl class="mt-6 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
+    <div><dt class="text-slate-500">Plan</dt><dd class="mt-0.5 font-medium">{{ invoice.plan_name }}</dd></div>
+    <div><dt class="text-slate-500">Period</dt><dd class="mt-0.5 font-medium">{{ invoice.period_start|date:"d M Y" }} &ndash; {{ invoice.period_end|date:"d M Y" }}</dd></div>
+    <div><dt class="text-slate-500">Issued</dt><dd class="mt-0.5 font-medium">{{ invoice.issue_date|date:"d M Y" }}</dd></div>
+    <div><dt class="text-slate-500">Due</dt><dd class="mt-0.5 font-medium {% if display_status == 'overdue' %}text-rose-700{% endif %}">{{ invoice.due_date|date:"d M Y" }} <span class="font-normal text-slate-500">({{ invoice.payment_term_name }})</span></dd></div>
+    <div><dt class="text-slate-500">Bill to</dt><dd class="mt-0.5 font-medium">{{ invoice.bill_to_name }}<div class="text-xs font-normal text-slate-500">{{ invoice.bill_to_email }}</div></dd></div>
+    {% if invoice.bill_to_tax_id %}<div><dt class="text-slate-500">Tax ID</dt><dd class="mt-0.5 font-medium">{{ invoice.bill_to_tax_id }}</dd></div>{% endif %}
+    <div><dt class="text-slate-500">Emailed</dt><dd class="mt-0.5 font-medium">{{ invoice.sent_at|date:"d M Y H:i"|default:"Not sent yet" }}</dd></div>
+  </dl>
+</div>
+
+<section class="mt-6 rounded-xl border border-slate-200 bg-white shadow-sm">
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-slate-200 text-sm">
+      <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <tr><th class="px-6 py-3">Description</th><th class="px-4 py-3 text-right">Qty</th><th class="px-4 py-3 text-right">Unit price</th><th class="px-4 py-3 text-right">Amount</th><th class="px-4 py-3 text-right">Discount</th><th class="px-4 py-3">Tax</th><th class="px-4 py-3 text-right">Total</th></tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for l in invoice.lines.all %}
+        <tr>
+          <td class="px-6 py-3 font-medium text-slate-900">{{ l.description }}</td>
+          <td class="px-4 py-3 text-right tabular-nums">{{ l.quantity }}</td>
+          <td class="px-4 py-3 text-right tabular-nums">{{ l.unit_price|money }}</td>
+          <td class="px-4 py-3 text-right tabular-nums">{{ l.amount|money }}</td>
+          <td class="px-4 py-3 text-right tabular-nums text-emerald-700">{% if l.discount_amount %}-{{ l.discount_amount|money }}{% else %}-{% endif %}</td>
+          <td class="px-4 py-3 text-slate-600">{% if l.tax_name %}{{ l.tax_name }} {% if l.tax_type == 'percentage' %}{{ l.tax_rate|floatformat:"-2" }}%{% endif %} <span class="tabular-nums">({{ l.tax_amount|money }})</span>{% else %}-{% endif %}</td>
+          <td class="px-4 py-3 text-right font-medium tabular-nums">{{ l.total|money }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="flex justify-end border-t border-slate-200 px-6 py-4">
+    <dl class="w-full max-w-xs space-y-1 text-sm">
+      <div class="flex justify-between"><dt class="text-slate-500">Subtotal</dt><dd class="tabular-nums">{{ invoice.subtotal|money }}</dd></div>
+      {% if invoice.discount_total %}<div class="flex justify-between text-emerald-700"><dt>Discount: {{ invoice.discount_name }}</dt><dd class="tabular-nums">-{{ invoice.discount_total|money }}</dd></div>{% endif %}
+      <div class="flex justify-between"><dt class="text-slate-500">Tax</dt><dd class="tabular-nums">{{ invoice.tax_total|money }}</dd></div>
+      <div class="flex justify-between border-t border-slate-200 pt-1 text-base font-semibold"><dt>Total</dt><dd class="tabular-nums">{{ invoice.total|money }}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-500">Paid</dt><dd class="tabular-nums">{{ invoice.amount_paid|money }}</dd></div>
+      <div class="flex justify-between font-semibold"><dt>Balance due</dt><dd class="tabular-nums">{{ invoice.balance|money }}</dd></div>
+    </dl>
+  </div>
+</section>
+
+{% if payments %}
+<section class="mt-6 rounded-xl border border-slate-200 bg-white shadow-sm">
+  <div class="border-b border-slate-200 px-6 py-4"><h3 class="font-semibold">Payments</h3></div>
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-slate-200 text-sm">
+      <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <tr><th class="px-6 py-3">Date</th><th class="px-4 py-3">Method</th><th class="px-4 py-3">Reference</th><th class="px-4 py-3 text-right">Amount</th><th class="px-4 py-3">Recorded by</th>{% if user.is_admin %}<th class="px-4 py-3"></th>{% endif %}</tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for p in payments %}
+        <tr class="{% if p.is_voided %}text-slate-400{% endif %}">
+          <td class="px-6 py-3 tabular-nums">{{ p.payment_date|date:"d M Y" }}</td>
+          <td class="px-4 py-3">{{ p.get_method_display }}</td>
+          <td class="px-4 py-3">{{ p.note|default:"-" }}</td>
+          <td class="px-4 py-3 text-right tabular-nums {% if p.is_voided %}line-through{% endif %}">{{ p.amount|money }}</td>
+          <td class="px-4 py-3">{{ p.created_by.full_name|default:"-" }}{% if p.is_voided %} <span class="text-xs font-medium text-rose-600">voided{% if p.void_reason %}: {{ p.void_reason }}{% endif %}</span>{% endif %}</td>
+          {% if user.is_admin %}
+          <td class="px-4 py-3 text-right">
+            {% if not p.is_voided %}
+            <form method="post" action="{% url 'payments:void' p.pk %}" onsubmit="var r = prompt('Void this payment? Give a short reason:'); if (r === null) return false; this.reason.value = r; return true;">
+              {% csrf_token %}<input type="hidden" name="reason" value=""><button class="text-xs font-medium text-rose-700 hover:underline">Void</button>
+            </form>
+            {% endif %}
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

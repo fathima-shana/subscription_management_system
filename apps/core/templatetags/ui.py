@@ -39,3 +39,9 @@ def money(value):
         return f"₹{float(value):,.2f}"
     except (TypeError, ValueError):
         return "₹0.00"
+
+
+@register.filter
+def invoice_status(invoice, today):
+    """Status word for an invoice, with 'overdue' derived from the due date: {{ i|invoice_status:today }}."""
+    return invoice.display_status(today)

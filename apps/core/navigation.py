@@ -15,6 +15,11 @@ ICONS = {
     "box": "M21 8l-9-5-9 5v8l9 5 9-5V8zM3.3 7.5L12 12.5l8.7-5M12 22V12.5",
     "repeat": "M17 2l4 4-4 4M3 11V9a3 3 0 013-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 01-3 3H3",
     "tag": "M20.6 13.4l-7.2 7.2a2 2 0 01-2.8 0L3 13V3h10l7.6 7.6a2 2 0 010 2.8zM7.5 7.5h.01",
+    "refresh": "M4 4v5h5M20 20v-5h-5M5.6 15A8 8 0 0018 17.7M18.4 9A8 8 0 006 6.3",
+    "doc": "M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8l-5-5zM14 3v5h5M9 13h6M9 17h6",
+    "receipt": "M6 2h12v20l-3-2-3 2-3-2-3 2V2zM9 7h6M9 11h6M9 15h4",
+    "play": "M5 3l14 9-14 9V3z",
+    "card": "M3 6h18v12H3V6zM3 10h18M7 15h3",
     "percent": "M19 5L5 19M7.5 9a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM16.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z",
 }
 
@@ -31,10 +36,15 @@ class NavItem:
 NAV_ITEMS = [
     NavItem("Dashboard", "core:home", ALL, "home", exact=True),
     NavItem("Customers", "customers:list", INTERNAL, "users"),
+    NavItem("Subscriptions", "subscriptions:list", INTERNAL, "refresh"),
+    NavItem("Invoices", "invoices:list", INTERNAL, "receipt"),
+    NavItem("Payments", "payments:list", INTERNAL, "card"),
     NavItem("Products", "catalog:product_list", INTERNAL, "box"),
     NavItem("Plans", "catalog:plan_list", INTERNAL, "repeat"),
+    NavItem("Templates", "qtemplates:list", INTERNAL, "doc"),
     NavItem("Taxes", "taxes:list", INTERNAL, "percent"),
     NavItem("Discounts", "discounts:list", INTERNAL, "tag"),
+    NavItem("Billing", "billing:home", ADMIN, "play"),
     NavItem("Staff", "staff:list", ADMIN, "shield"),
 ]
 

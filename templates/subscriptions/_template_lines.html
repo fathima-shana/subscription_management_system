@@ -1,0 +1,41 @@
+{% load ui %}
+<section id="template-lines" class="mt-6 rounded-xl border border-slate-200 bg-white shadow-sm">
+  <div class="border-b border-slate-200 px-6 py-4"><h3 class="font-semibold text-slate-900">Products</h3>
+    <p class="text-sm text-slate-500">Copied onto every subscription created from this template, at the price on the day.</p></div>
+  {% if lines %}
+  <table class="min-w-full divide-y divide-slate-200 text-sm">
+    <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+      <tr><th class="px-6 py-3">Product</th><th class="px-4 py-3 text-right">Qty</th><th class="px-4 py-3 text-right">Unit price</th><th class="px-4 py-3 text-right">Amount</th>{% if user.is_admin %}<th class="px-4 py-3"></th>{% endif %}</tr>
+    </thead>
+    <tbody class="divide-y divide-slate-100">
+      {% for l in lines %}
+      <tr>
+        <td class="px-6 py-3 font-medium">{{ l.label }}</td>
+        <td class="px-4 py-3 text-right tabular-nums">{{ l.quantity }}</td>
+        <td class="px-4 py-3 text-right tabular-nums">{{ l.unit_price|money }}</td>
+        <td class="px-4 py-3 text-right tabular-nums">{{ l.amount|money }}</td>
+        {% if user.is_admin %}<td class="px-4 py-3 text-right"><button type="button" hx-post="{% url 'qtemplates:line_delete' l.pk %}" hx-target="#template-lines" hx-swap="outerHTML" class="text-xs font-medium text-rose-700 hover:underline">Remove</button></td>{% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot><tr class="border-t border-slate-200 font-semibold"><td class="px-6 py-3" colspan="3">Total before tax</td><td class="px-4 py-3 text-right tabular-nums">{{ total|money }}</td>{% if user.is_admin %}<td></td>{% endif %}</tr></tfoot>
+  </table>
+  {% else %}
+  <p class="px-6 py-8 text-center text-sm text-slate-500">No products yet.</p>
+  {% endif %}
+
+  {% if user.is_admin %}
+  <form method="post" action="{% url 'qtemplates:line_create' template.pk %}" novalidate
+        hx-post="{% url 'qtemplates:line_create' template.pk %}" hx-target="#template-lines" hx-swap="outerHTML"
+        class="border-t border-slate-200 bg-slate-50/60 px-6 py-5">
+    {% csrf_token %}
+    <p class="mb-3 text-sm font-medium text-slate-700">Add a product</p>
+    {% include "partials/form_errors.html" with form=line_form %}
+    <div class="grid gap-4 sm:grid-cols-4 sm:items-start">
+      <div class="sm:col-span-2">{% include "partials/form_field.html" with field=line_form.item %}</div>
+      {% include "partials/form_field.html" with field=line_form.quantity %}
+      <div class="sm:pt-6"><button type="submit" class="w-full rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700">Add</button></div>
+    </div>
+  </form>
+  {% endif %}
+</section>

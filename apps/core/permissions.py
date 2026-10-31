@@ -36,3 +36,9 @@ def ensure_admin(actor) -> None:
     """
     if not getattr(actor, "is_authenticated", False) or getattr(actor, "role", None) != "admin":
         raise PermissionDenied("Only an admin can do this.")
+
+
+def ensure_internal(actor) -> None:
+    """Service-layer guard: raise PermissionDenied unless `actor` is an active admin or staff user."""
+    if not getattr(actor, "is_authenticated", False) or getattr(actor, "role", None) not in ("admin", "staff"):
+        raise PermissionDenied("Only admin or staff can do this.")

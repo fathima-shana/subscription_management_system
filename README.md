@@ -59,3 +59,44 @@ Design notes:
 - No stacking: the eligible discount with the biggest saving wins; ties go to the older one.
 - `services.redeem()` uses up one redemption with a single guarded UPDATE, so parallel invoices can never pass the usage limit (a database CHECK backs it up). The billing engine (step 7) calls it.
 - `engine.explain()` returns the reason each discount was skipped, for debugging.
+
+## Subscriptions (step 6)
+
+`/subscriptions/` (admin and staff) and `/quotation-templates/` (admin edits, staff view).
+
+- Status flow: Draft, Quotation, Confirmed, Active, Closed, plus Paused. One table of allowed moves in `apps/subscriptions/workflow.py`; every move is locked, checked, written to the status history and the audit log.
+- Plan rules drive the buttons: Pause needs `pausable`, early Close needs `closable`. Automatic closing at the end date (step 7) bypasses `closable`.
+- Confirming checks: at least one line, minimum quantity per line, plan active and in its date window, quotation not expired, customer active. All problems are shown together.
+- Pricing order (`apps/subscriptions/pricing.py`): discount first (best single discount, shared across lines in proportion), tax after. The billing engine reuses it, so previews match invoices.
+- Line prices are snapshots; a later price change never alters an existing line.
+- Numbers (`SUB-00001`) come from a row-locked counter in `apps/core/sequences.py`.
+- Resuming a paused subscription never back-bills the paused time.
+- Payment terms (Immediate, 15, 30, 45 days) are seeded by a migration; edit them in Django admin.
+- A customer-scoped selector already exists (`selectors.subscription_queryset(user)`); the portal in step 9 will use it.
+
+## Billing and invoices (step 7)
+
+`/billing/` (admin: run billing), `/invoices/` (admin and staff), and `python manage.py run_billing [--dry-run] [--date YYYY-MM-DD]`.
+
+Rules (`apps/billing/engine.py`):
+- Due = Active and next billing date reached. Billing is in advance, one invoice per period, whole periods only (no proration).
+- Each invoice is created in its own transaction together with moving the next billing date on and using up the discount, so a failure leaves nothing half-done.
+- `SELECT ... FOR UPDATE SKIP LOCKED` on the subscription means two runs at once never bill the same subscription. `UNIQUE(subscription, period_start)` in the database is the last line of defence, and a period that already has an invoice only gets its date moved on.
+- A subscription several periods behind is caught up one invoice per period (at most 24 per run). Monthly and yearly dates stay on the start day (31 Jan, 28 Feb, 31 Mar).
+- Discounts valid on the first day of the billed period are considered; the best one that can still be redeemed is used.
+- Invoices copy names, prices, tax rates and the discount, so later changes never alter them. A cancelled invoice keeps its period billed.
+- After the last period: Auto-close plans are closed by the system; others stop billing and stay Active.
+- One failing subscription never stops the run; it is logged and shown in the summary.
+- Overdue is derived (confirmed, unpaid, past due date), never stored.
+- Paying an invoice (and marking it Paid automatically) arrives with payments in step 8.
+
+## Payments (step 8)
+
+`/payments/` (admin and staff), `/payments/record/<invoice id>/`, and a Payments box on every invoice.
+
+- Methods: cash, bank transfer, card, UPI. Part payments are supported; one payment belongs to one invoice.
+- Recording locks the invoice row first, so parallel payments can never take an invoice past its total (a test fires six at once). The database also refuses `amount_paid` above `total`.
+- `amount_paid` is always recalculated from the live (non-voided) payments, never incremented. The invoice becomes Paid when they reach the total and goes back to Confirmed if a payment is voided.
+- Payments are never edited or deleted. Admin voids a mistake with a reason; it is audited.
+- Outstanding = balance on confirmed invoices; Overdue = the same with a due date before today (derived, never stored); Collected = live payments in a date range (`apps/payments/selectors.py`). The reports in step 9 reuse these.
+- Zero-total invoices (100% discount) are created Paid.

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load ui %}
+
+{% block content %}
+<div class="mb-6 grid gap-4 sm:grid-cols-3">
+  <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Outstanding</p>
+    <p class="mt-1 text-2xl font-semibold tabular-nums">{{ totals.outstanding.amount|money }}</p>
+    <p class="text-sm text-slate-500">{{ totals.outstanding.count }} open invoice{{ totals.outstanding.count|pluralize }}</p>
+  </div>
+  <a href="{% url 'invoices:list' %}?status=overdue" class="rounded-xl border bg-white p-5 shadow-sm hover:bg-slate-50 {% if totals.overdue.count %}border-rose-200{% else %}border-slate-200{% endif %}">
+    <p class="text-xs font-semibold uppercase tracking-wide {% if totals.overdue.count %}text-rose-600{% else %}text-slate-500{% endif %}">Overdue</p>
+    <p class="mt-1 text-2xl font-semibold tabular-nums {% if totals.overdue.count %}text-rose-700{% endif %}">{{ totals.overdue.amount|money }}</p>
+    <p class="text-sm text-slate-500">{{ totals.overdue.count }} invoice{{ totals.overdue.count|pluralize }} past due</p>
+  </a>
+  <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Collected this month</p>
+    <p class="mt-1 text-2xl font-semibold tabular-nums text-emerald-700">{{ collected_month|money }}</p>
+    <p class="text-sm text-slate-500">{{ today|date:"F Y" }}</p>
+  </div>
+</div>
+
+<div class="mb-4 flex flex-wrap items-center gap-3">
+  <input type="hidden" id="method-filter" name="method" value="{{ method }}">
+  {% url 'payments:list' as list_url %}
+  {% include "partials/search_box.html" with url=list_url target="payment-results" placeholder="Search by invoice, customer or reference" include="#method-filter" %}
+</div>
+<div class="mb-4 flex flex-wrap gap-2 text-sm">
+  <a href="?q={{ q|urlencode }}" class="rounded-full px-3 py-1 ring-1 ring-inset {% if not method %}bg-brand-50 text-brand-700 ring-brand-100{% else %}bg-white text-slate-600 ring-slate-200 hover:bg-slate-50{% endif %}">All methods</a>
+  {% for value, label in methods %}
+  <a href="?method={{ value }}&q={{ q|urlencode }}" class="rounded-full px-3 py-1 ring-1 ring-inset {% if method == value %}bg-brand-50 text-brand-700 ring-brand-100{% else %}bg-white text-slate-600 ring-slate-200 hover:bg-slate-50{% endif %}">{{ label }}</a>
+  {% endfor %}
+</div>
+<div id="payment-results">{% include "payments/_payment_results.html" %}</div>
+{% endblock %}

@@ -24,3 +24,13 @@ class AuditLog(models.Model):
 
     def __str__(self):
         return f"{self.created_at:%Y-%m-%d %H:%M} {self.action} {self.entity_type}#{self.entity_id}"
+
+
+class NumberSequence(models.Model):
+    """Gap-free-per-key counter for human-readable numbers such as SUB-00001 and INV-00001."""
+
+    key = models.CharField(max_length=20, unique=True)
+    next_value = models.PositiveIntegerField(default=1)
+
+    def __str__(self):
+        return f"{self.key} -> {self.next_value}"
