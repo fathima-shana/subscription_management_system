@@ -1,0 +1,18 @@
+[x-cloak] { display: none !important; }
+
+/* Smooth HTMX swaps */
+.htmx-added { opacity: 0; }
+.htmx-settling { opacity: 1; transition: opacity 150ms ease-in; }
+.htmx-request .htmx-indicator, .htmx-request.htmx-indicator { opacity: 1; }
+.htmx-indicator { opacity: 0; transition: opacity 150ms ease-in; }
+
+/* Toast entrance */
+.toast { animation: toast-in 180ms ease-out; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* Print: hide app chrome so invoices print cleanly (used from the billing step) */
+@media print {
+  aside, header, #toast-root, .no-print { display: none !important; }
+  .lg\:pl-64 { padding-left: 0 !important; }
+  body { background: #fff; }
+}

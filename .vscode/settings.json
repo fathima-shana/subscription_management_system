@@ -1,0 +1,20 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/venv/Scripts/python.exe",
+  "python.terminal.activateEnvironment": true,
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "editor.formatOnSave": true,
+  "editor.rulers": [100],
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.codeActionsOnSave": { "source.organizeImports": "explicit" }
+  },
+  "[html]": { "editor.defaultFormatter": null, "editor.formatOnSave": false },
+  "[django-html]": { "editor.defaultFormatter": null, "editor.formatOnSave": false },
+  "files.associations": { "**/templates/**/*.html": "django-html" },
+  "emmet.includeLanguages": { "django-html": "html" },
+  "files.exclude": { "**/__pycache__": true, "**/*.pyc": true },
+  "git.autofetch": true,
+  "git.confirmSync": false
+}

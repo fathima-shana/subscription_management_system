@@ -1,0 +1,14 @@
+{% load ui %}
+<div class="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+  <p class="text-xs font-semibold uppercase tracking-wider text-brand-600">Step 1 · Scaffold</p>
+  <h2 class="mt-2 text-2xl font-semibold tracking-tight">Brightloop Subscription Management</h2>
+  <p class="mt-2 max-w-xl text-slate-600">
+    The project is running on PostgreSQL. Accounts, catalog, subscriptions, billing,
+    payments and reports are added module by module in the next steps.
+  </p>
+  <div class="mt-6 flex flex-wrap gap-2">
+    {% for s in "draft quotation confirmed active closed paid overdue"|words %}
+      <span class="rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ring-1 ring-inset {% badge_classes s %}">{{ s }}</span>
+    {% endfor %}
+  </div>
+</div>

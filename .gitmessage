@@ -1,0 +1,6 @@
+# <type>(<scope>): <summary, imperative, max ~60 chars>
+#
+# Why this change was needed (optional body, wrap at ~72 chars)
+#
+# Types: feat | fix | refactor | perf | test | docs | chore | style
+# Scopes: core accounts catalog taxes discounts subscriptions billing payments reports portal
