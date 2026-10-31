@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-5 flex flex-wrap items-center gap-3">
+  {% url 'taxes:list' as list_url %}
+  {% include "partials/search_box.html" with url=list_url target="tax-results" placeholder="Search taxes by name" %}
+  {% if user.is_admin %}
+  <a href="{% url 'taxes:create' %}" class="ml-auto rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700">Add tax</a>
+  {% endif %}
+</div>
+
+<div class="grid gap-6 lg:grid-cols-3">
+  <div class="lg:col-span-2" id="tax-results">{% include "taxes/_tax_results.html" %}</div>
+
+  <aside class="h-fit rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <h2 class="text-sm font-semibold text-slate-900">Tax calculator</h2>
+    <p class="mt-1 text-xs text-slate-500">See what every active tax adds to an amount (before tax, after discounts).</p>
+    <input type="text" inputmode="decimal" name="amount" placeholder="e.g. 1000" autocomplete="off"
+           hx-get="{% url 'taxes:preview' %}" hx-trigger="input changed delay:250ms" hx-target="#tax-preview"
+           class="mt-3 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20">
+    <div id="tax-preview" class="mt-3 text-sm">{% include "taxes/_preview.html" %}</div>
+  </aside>
+</div>
+{% endblock %}

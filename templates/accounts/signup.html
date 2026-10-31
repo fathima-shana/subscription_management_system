@@ -1,0 +1,31 @@
+{% extends "accounts/auth_base.html" %}
+
+{% block content %}
+<h1 class="text-2xl font-semibold tracking-tight">Create your account</h1>
+<p class="mt-1 text-sm text-slate-600">Manage your subscriptions and invoices in one place.</p>
+
+<form method="post" class="mt-8 space-y-5" novalidate
+      x-data="{ pw: '' }">
+  {% csrf_token %}
+  {% include "partials/form_errors.html" %}
+  {% include "partials/form_field.html" with field=form.full_name %}
+  {% include "partials/form_field.html" with field=form.email %}
+  {% include "partials/form_field.html" with field=form.company_name %}
+  <div>
+    {% include "partials/form_field.html" with field=form.password1 %}
+    <ul class="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs" aria-live="polite">
+      <li :class="pw.length > 8 ? 'text-emerald-600' : 'text-slate-400'">More than 8 characters</li>
+      <li :class="/[A-Z]/.test(pw) ? 'text-emerald-600' : 'text-slate-400'">Uppercase letter</li>
+      <li :class="/[a-z]/.test(pw) ? 'text-emerald-600' : 'text-slate-400'">Lowercase letter</li>
+      <li :class="/[^A-Za-z0-9\s]/.test(pw) ? 'text-emerald-600' : 'text-slate-400'">Special character</li>
+    </ul>
+  </div>
+  {% include "partials/form_field.html" with field=form.password2 %}
+  <button type="submit" class="w-full rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500/40">Create account</button>
+</form>
+
+<p class="mt-6 text-center text-sm text-slate-600">
+  Already have an account?
+  <a href="{% url 'accounts:login' %}" class="font-medium text-brand-600 hover:text-brand-700">Sign in</a>
+</p>
+{% endblock %}

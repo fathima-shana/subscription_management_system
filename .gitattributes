@@ -1,0 +1,15 @@
+# Normalise line endings so Windows (CRLF) and any other machine produce clean diffs.
+* text=auto eol=lf
+
+*.py   text eol=lf
+*.html text eol=lf
+*.css  text eol=lf
+*.js   text eol=lf
+*.md   text eol=lf
+*.json text eol=lf
+
+# Binary files: never touch
+*.png  binary
+*.jpg  binary
+*.ico  binary
+*.zip  binary

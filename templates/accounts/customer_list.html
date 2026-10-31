@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-5 flex flex-wrap items-center gap-3">
+  {% url 'customers:list' as list_url %}
+  {% include "partials/search_box.html" with url=list_url target="customer-results" placeholder="Search by name, email or company" %}
+</div>
+<div id="customer-results">{% include "accounts/_customer_results.html" %}</div>
+{% endblock %}

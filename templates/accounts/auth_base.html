@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block page %}
+<div class="grid min-h-full lg:grid-cols-2">
+  <aside class="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-brand-700 via-brand-600 to-indigo-500 p-12 text-white lg:flex">
+    <div class="flex items-center gap-2">
+      <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-white/20 text-base font-bold">B</span>
+      <span class="text-xl font-semibold tracking-tight">Brightloop</span>
+    </div>
+    <div>
+      <h2 class="max-w-md text-4xl font-semibold leading-tight tracking-tight">Recurring revenue, run in one place.</h2>
+      <p class="mt-4 max-w-md text-indigo-100">Plans, subscriptions, invoices and payments, without the spreadsheets.</p>
+    </div>
+    <p class="text-xs text-indigo-200">&copy; Brightloop Software</p>
+  </aside>
+
+  <section class="flex items-center justify-center px-6 py-12">
+    <div class="w-full max-w-md">
+      <div class="mb-8 flex items-center gap-2 lg:hidden">
+        <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">B</span>
+        <span class="text-lg font-semibold tracking-tight">Brightloop</span>
+      </div>
+      {% block content %}{% endblock %}
+    </div>
+  </section>
+</div>
+{% endblock %}

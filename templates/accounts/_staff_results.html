@@ -1,0 +1,20 @@
+<div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+  {% if page_obj.object_list %}
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-slate-200 text-sm">
+      <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <tr><th class="px-4 py-3">Name</th><th class="px-4 py-3">Email</th><th class="px-4 py-3">Joined</th><th class="px-4 py-3">Status</th><th class="px-4 py-3 text-right">Actions</th></tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for u in page_obj %}{% include "accounts/_staff_row.html" %}{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "partials/pagination.html" %}
+  {% else %}
+  <div class="px-6 py-14 text-center">
+    <p class="font-medium text-slate-900">{% if q %}No staff match "{{ q }}"{% else %}No staff members yet{% endif %}</p>
+    <p class="mt-1 text-sm text-slate-500">{% if q %}Try a different name or email.{% else %}Add your first team member to get started.{% endif %}</p>
+  </div>
+  {% endif %}
+</div>

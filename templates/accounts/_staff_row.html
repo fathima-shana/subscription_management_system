@@ -1,0 +1,25 @@
+{% load ui %}
+<tr>
+  <td class="px-4 py-3 font-medium text-slate-900">{{ u.full_name }}</td>
+  <td class="px-4 py-3 text-slate-600">{{ u.email }}</td>
+  <td class="px-4 py-3 text-slate-600">{{ u.date_joined|date:"d M Y" }}</td>
+  <td class="px-4 py-3">
+    {% if u.is_active %}
+      <span class="rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset {% badge_classes 'active' %}">Active</span>
+    {% else %}
+      <span class="rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset {% badge_classes 'closed' %}">Inactive</span>
+    {% endif %}
+  </td>
+  <td class="px-4 py-3 text-right">
+    {% if u.is_active %}
+      <button type="button" hx-post="{% url 'staff:toggle_active' u.pk %}" hx-vals='{"active": "0"}'
+              hx-target="closest tr" hx-swap="outerHTML"
+              hx-confirm="Deactivate {{ u.full_name }}? They will be signed out and unable to sign in."
+              class="rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-50">Deactivate</button>
+    {% else %}
+      <button type="button" hx-post="{% url 'staff:toggle_active' u.pk %}" hx-vals='{"active": "1"}'
+              hx-target="closest tr" hx-swap="outerHTML"
+              class="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-50">Reactivate</button>
+    {% endif %}
+  </td>
+</tr>

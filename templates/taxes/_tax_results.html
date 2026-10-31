@@ -1,0 +1,42 @@
+{% load ui %}
+<div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+  {% if page_obj.object_list %}
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-slate-200 text-sm">
+      <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <tr><th class="px-4 py-3">Name</th><th class="px-4 py-3">Type</th><th class="px-4 py-3 text-right">Rate</th><th class="px-4 py-3">Status</th>{% if user.is_admin %}<th class="px-4 py-3 text-right">Actions</th>{% endif %}</tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for t in page_obj %}
+        <tr>
+          <td class="px-4 py-3 font-medium text-slate-900">{{ t.name }}</td>
+          <td class="px-4 py-3 text-slate-600">{{ t.get_tax_type_display }}</td>
+          <td class="px-4 py-3 text-right tabular-nums text-slate-700">{% if t.tax_type == 'percentage' %}{{ t.rate|floatformat:"-2" }}%{% else %}{{ t.rate|money }}{% endif %}</td>
+          <td class="px-4 py-3">
+            {% if t.is_active %}<span class="rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset {% badge_classes 'active' %}">Active</span>
+            {% else %}<span class="rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset {% badge_classes 'closed' %}">Inactive</span>{% endif %}
+          </td>
+          {% if user.is_admin %}
+          <td class="px-4 py-3 text-right">
+            <div class="flex justify-end gap-2">
+              <a href="{% url 'taxes:edit' t.pk %}" class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">Edit</a>
+              <form method="post" action="{% url 'taxes:toggle_active' t.pk %}" onsubmit="return {% if t.is_active %}confirm('Deactivate {{ t.name|escapejs }}? It stops being offered on new items; old invoices keep their snapshot.'){% else %}true{% endif %}">
+                {% csrf_token %}<input type="hidden" name="active" value="{% if t.is_active %}0{% else %}1{% endif %}">
+                <button class="rounded-lg border px-3 py-1.5 text-xs font-medium {% if t.is_active %}border-rose-200 text-rose-700 hover:bg-rose-50{% else %}border-emerald-200 text-emerald-700 hover:bg-emerald-50{% endif %}">{% if t.is_active %}Deactivate{% else %}Reactivate{% endif %}</button>
+              </form>
+            </div>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "partials/pagination.html" %}
+  {% else %}
+  <div class="px-6 py-14 text-center">
+    <p class="font-medium text-slate-900">{% if q %}No taxes match "{{ q }}"{% else %}No taxes yet{% endif %}</p>
+    <p class="mt-1 text-sm text-slate-500">{% if q %}Try a different name.{% elif user.is_admin %}Add GST or any other tax to apply it to products.{% else %}An admin needs to add taxes.{% endif %}</p>
+  </div>
+  {% endif %}
+</div>

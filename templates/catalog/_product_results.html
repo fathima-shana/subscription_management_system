@@ -1,0 +1,38 @@
+{% load ui %}
+<div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+  {% if page_obj.object_list %}
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-slate-200 text-sm">
+      <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <tr>
+          <th class="px-4 py-3">Product</th><th class="px-4 py-3">Type</th>
+          <th class="px-4 py-3 text-right">Sales price</th><th class="px-4 py-3 text-right">Cost</th>
+          <th class="px-4 py-3">Tax</th><th class="px-4 py-3 text-right">Variants</th><th class="px-4 py-3">Status</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for p in page_obj %}
+        <tr class="hover:bg-slate-50">
+          <td class="px-4 py-3 font-medium"><a href="{% url 'catalog:product_detail' p.pk %}" class="text-slate-900 hover:text-brand-700">{{ p.name }}</a></td>
+          <td class="px-4 py-3 text-slate-600">{{ p.get_product_type_display }}</td>
+          <td class="px-4 py-3 text-right tabular-nums">{{ p.sales_price|money }}</td>
+          <td class="px-4 py-3 text-right tabular-nums text-slate-600">{{ p.cost_price|money }}</td>
+          <td class="px-4 py-3 text-slate-600">{{ p.default_tax.name|default:"-" }}</td>
+          <td class="px-4 py-3 text-right tabular-nums text-slate-600">{{ p.variant_count }}</td>
+          <td class="px-4 py-3">
+            {% if p.is_active %}<span class="rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset {% badge_classes 'active' %}">Active</span>
+            {% else %}<span class="rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset {% badge_classes 'closed' %}">Inactive</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "partials/pagination.html" %}
+  {% else %}
+  <div class="px-6 py-14 text-center">
+    <p class="font-medium text-slate-900">{% if q %}No products match "{{ q }}"{% else %}No products yet{% endif %}</p>
+    <p class="mt-1 text-sm text-slate-500">{% if q %}Try a different name or variant.{% elif user.is_admin %}Add your first product to start building subscriptions.{% else %}An admin needs to add products.{% endif %}</p>
+  </div>
+  {% endif %}
+</div>

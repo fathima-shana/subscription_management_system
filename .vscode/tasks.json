@@ -1,0 +1,24 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "migrate",
+      "type": "shell",
+      "command": "${workspaceFolder}/venv/Scripts/python.exe manage.py migrate",
+      "problemMatcher": []
+    },
+    {
+      "label": "makemigrations",
+      "type": "shell",
+      "command": "${workspaceFolder}/venv/Scripts/python.exe manage.py makemigrations",
+      "problemMatcher": []
+    },
+    {
+      "label": "test",
+      "type": "shell",
+      "command": "${workspaceFolder}/venv/Scripts/python.exe manage.py test",
+      "group": "test",
+      "problemMatcher": []
+    }
+  ]
+}
