@@ -1,0 +1,34 @@
+{% load ui %}
+<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+  <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Monthly recurring revenue</p>
+    <p class="mt-1 text-2xl font-semibold tabular-nums">{{ r.mrr|money }}</p>
+    <p class="text-sm text-slate-500">from {{ r.active }} active subscription{{ r.active|pluralize }}</p>
+  </div>
+  <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Invoiced &middot; {{ filters.label }}</p>
+    <p class="mt-1 text-2xl font-semibold tabular-nums">{{ r.invoiced.amount|money }}</p>
+    <p class="text-sm text-slate-500">{{ r.invoiced.count }} invoice{{ r.invoiced.count|pluralize }}</p>
+  </div>
+  <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Collected &middot; {{ filters.label }}</p>
+    <p class="mt-1 text-2xl font-semibold tabular-nums text-emerald-700">{{ r.collected|money }}</p>
+    <p class="text-sm text-slate-500">{{ r.new_subscriptions }} new subscription{{ r.new_subscriptions|pluralize }} in this period</p>
+  </div>
+  <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Outstanding (today)</p>
+    <p class="mt-1 text-2xl font-semibold tabular-nums">{{ r.outstanding.amount|money }}</p>
+    <p class="text-sm text-slate-500">{{ r.outstanding.count }} open invoice{{ r.outstanding.count|pluralize }}</p>
+  </div>
+  <a href="{% url 'invoices:list' %}?status=overdue" class="rounded-xl border bg-white p-5 shadow-sm hover:bg-slate-50 {% if r.overdue.count %}border-rose-200{% else %}border-slate-200{% endif %}">
+    <p class="text-xs font-semibold uppercase tracking-wide {% if r.overdue.count %}text-rose-600{% else %}text-slate-500{% endif %}">Overdue (today)</p>
+    <p class="mt-1 text-2xl font-semibold tabular-nums {% if r.overdue.count %}text-rose-700{% endif %}">{{ r.overdue.amount|money }}</p>
+    <p class="text-sm text-slate-500">{{ r.overdue.count }} invoice{{ r.overdue.count|pluralize }} past due</p>
+  </a>
+  <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Subscriptions</p>
+    <p class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+      {% for s in r.status_counts %}<span><span class="font-semibold tabular-nums">{{ s.count }}</span> <span class="text-slate-500">{{ s.label|lower }}</span></span>{% endfor %}
+    </p>
+  </div>
+</div>

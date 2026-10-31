@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-5 flex flex-wrap items-center gap-3">
+  {% url 'portal:subscriptions' as list_url %}
+  {% include "partials/search_box.html" with url=list_url target="portal-subscription-results" placeholder="Search by subscription number" %}
+</div>
+<div id="portal-subscription-results">{% include "portal/_subscription_results.html" %}</div>
+{% endblock %}

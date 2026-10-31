@@ -100,3 +100,13 @@ Rules (`apps/billing/engine.py`):
 - Payments are never edited or deleted. Admin voids a mistake with a reason; it is audited.
 - Outstanding = balance on confirmed invoices; Overdue = the same with a due date before today (derived, never stored); Collected = live payments in a date range (`apps/payments/selectors.py`). The reports in step 9 reuse these.
 - Zero-total invoices (100% discount) are created Paid.
+
+## Reports, dashboard and customer portal (step 9)
+
+**Dashboard and reports** (`/` for admin and staff, `/reports/`): every figure is a database aggregate (`apps/reports/metrics.py`), so the number of queries does not grow with the amount of data (a test checks this).
+- MRR: line amounts (quantity x price, before discounts and tax) of Active subscriptions, normalised to a month: yearly / 12, weekly x 52/12, daily x 365/12.
+- Invoiced: invoices issued in the period, without drafts and cancelled ones. Collected: payments dated in the period, without voided ones. Outstanding and overdue: balance on confirmed invoices as of today.
+- Filters: period presets or a custom range, and a plan.
+- CSV exports (`/reports/export/<invoices|payments|subscriptions|overdue>/`): streamed in chunks, UTF-8 with BOM for Excel, cells starting with `= + - @` are prefixed with a quote so spreadsheets never run them as formulas, and each export is audited.
+
+**Customer portal** (`/portal/...`): read-only "My subscriptions" and "My invoices" (with payments received and a print view). Everything goes through `apps/core/scoping.py`, drafts are hidden, and internal pages stay closed to customers. The home page (`apps/core/views.py`) hands over to the business dashboard or the portal dashboard by role.

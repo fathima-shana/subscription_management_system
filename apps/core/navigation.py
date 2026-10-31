@@ -6,6 +6,7 @@ from django.urls import reverse
 ALL = ("admin", "staff", "customer")
 INTERNAL = ("admin", "staff")
 ADMIN = ("admin",)
+CUSTOMER = ("customer",)
 
 # Simple stroke icons (24x24 viewBox).
 ICONS = {
@@ -20,6 +21,7 @@ ICONS = {
     "receipt": "M6 2h12v20l-3-2-3 2-3-2-3 2V2zM9 7h6M9 11h6M9 15h4",
     "play": "M5 3l14 9-14 9V3z",
     "card": "M3 6h18v12H3V6zM3 10h18M7 15h3",
+    "chart": "M4 20V10M10 20V4M16 20v-8M22 20H2",
     "percent": "M19 5L5 19M7.5 9a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM16.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z",
 }
 
@@ -39,11 +41,14 @@ NAV_ITEMS = [
     NavItem("Subscriptions", "subscriptions:list", INTERNAL, "refresh"),
     NavItem("Invoices", "invoices:list", INTERNAL, "receipt"),
     NavItem("Payments", "payments:list", INTERNAL, "card"),
+    NavItem("My subscriptions", "portal:subscriptions", CUSTOMER, "refresh"),
+    NavItem("My invoices", "portal:invoices", CUSTOMER, "receipt"),
     NavItem("Products", "catalog:product_list", INTERNAL, "box"),
     NavItem("Plans", "catalog:plan_list", INTERNAL, "repeat"),
     NavItem("Templates", "qtemplates:list", INTERNAL, "doc"),
     NavItem("Taxes", "taxes:list", INTERNAL, "percent"),
     NavItem("Discounts", "discounts:list", INTERNAL, "tag"),
+    NavItem("Reports", "reports:report", INTERNAL, "chart"),
     NavItem("Billing", "billing:home", ADMIN, "play"),
     NavItem("Staff", "staff:list", ADMIN, "shield"),
 ]

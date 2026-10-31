@@ -1,0 +1,56 @@
+{% load ui %}
+<div class="grid gap-6 lg:grid-cols-2">
+  <section class="rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div class="border-b border-slate-200 px-6 py-4"><h3 class="font-semibold">Collected per month</h3><p class="text-sm text-slate-500">Last 6 months</p></div>
+    <div class="flex h-48 items-end gap-3 px-6 pb-4 pt-6">
+      {% for m in r.by_month %}
+      <div class="flex h-full flex-1 flex-col items-center justify-end gap-1" title="{{ m.month|date:'F Y' }}: {{ m.total|money }}">
+        <span class="text-xs tabular-nums text-slate-500">{% if m.total %}{{ m.total|money }}{% endif %}</span>
+        <div class="w-full rounded-t bg-brand-500" style="height: {{ m.pct }}%"></div>
+        <span class="text-xs text-slate-500">{{ m.month|date:"M" }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div class="border-b border-slate-200 px-6 py-4"><h3 class="font-semibold">Payments by method</h3><p class="text-sm text-slate-500">{{ filters.label }}</p></div>
+    <ul class="space-y-3 px-6 py-5">
+      {% for m in r.by_method %}
+      <li>
+        <div class="flex justify-between text-sm"><span class="font-medium">{{ m.label }}</span><span class="tabular-nums text-slate-600">{{ m.amount|money }} <span class="text-slate-400">&middot; {{ m.count }}</span></span></div>
+        <div class="mt-1 h-2 rounded-full bg-slate-100"><div class="h-2 rounded-full bg-emerald-500" style="width: {{ m.pct }}%"></div></div>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+
+<section class="mt-6 rounded-xl border border-slate-200 bg-white shadow-sm">
+  <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+    <div><h3 class="font-semibold">Overdue invoices</h3><p class="text-sm text-slate-500">Oldest first</p></div>
+    <a href="{% url 'invoices:list' %}?status=overdue" class="text-sm font-medium text-brand-600 hover:text-brand-700">See all</a>
+  </div>
+  {% if r.overdue_list %}
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-slate-200 text-sm">
+      <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <tr><th class="px-6 py-3">Invoice</th><th class="px-4 py-3">Customer</th><th class="px-4 py-3">Due</th><th class="px-4 py-3 text-right">Days overdue</th><th class="px-4 py-3 text-right">Balance</th></tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for o in r.overdue_list %}
+        <tr>
+          <td class="px-6 py-3 font-medium"><a class="text-brand-700 hover:underline" href="{% url 'invoices:detail' o.invoice.pk %}">{{ o.invoice.number }}</a></td>
+          <td class="px-4 py-3">{{ o.invoice.bill_to_name }}</td>
+          <td class="px-4 py-3 text-slate-600">{{ o.invoice.due_date|date:"d M Y" }}</td>
+          <td class="px-4 py-3 text-right tabular-nums text-rose-700">{{ o.days }}</td>
+          <td class="px-4 py-3 text-right tabular-nums">{{ o.balance|money }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="px-6 py-8 text-center text-sm text-slate-500">Nothing is overdue.</p>
+  {% endif %}
+</section>

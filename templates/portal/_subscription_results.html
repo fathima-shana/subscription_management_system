@@ -1,0 +1,30 @@
+{% load ui %}
+<div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+  {% if page_obj.object_list %}
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-slate-200 text-sm">
+      <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <tr><th class="px-4 py-3">Subscription</th><th class="px-4 py-3">Plan</th><th class="px-4 py-3">Start</th><th class="px-4 py-3">Next billing</th><th class="px-4 py-3 text-right">Per period</th><th class="px-4 py-3">Status</th></tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for s in page_obj %}
+        <tr class="hover:bg-slate-50">
+          <td class="px-4 py-3 font-medium"><a href="{% url 'portal:subscription' s.pk %}" class="text-brand-700 hover:underline">{{ s.number }}</a></td>
+          <td class="px-4 py-3 text-slate-600">{{ s.plan.name }}</td>
+          <td class="px-4 py-3 text-slate-600">{{ s.start_date|date:"d M Y" }}</td>
+          <td class="px-4 py-3 text-slate-600">{{ s.next_billing_date|date:"d M Y"|default:"-" }}</td>
+          <td class="px-4 py-3 text-right tabular-nums">{{ s.subtotal|money }}</td>
+          <td class="px-4 py-3"><span class="rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ring-1 ring-inset {% badge_classes s.status %}">{{ s.status }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "partials/pagination.html" %}
+  {% else %}
+  <div class="px-6 py-14 text-center">
+    <p class="font-medium text-slate-900">{% if q %}No subscriptions match "{{ q }}"{% else %}You have no subscriptions yet{% endif %}</p>
+    <p class="mt-1 text-sm text-slate-500">{% if q %}Try a different search.{% else %}Your quotations and subscriptions will appear here.{% endif %}</p>
+  </div>
+  {% endif %}
+</div>
