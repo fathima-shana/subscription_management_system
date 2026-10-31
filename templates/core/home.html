@@ -1,7 +1,12 @@
 {% extends "base.html" %}
-{% load ui %}
 
-{% block content %}{% include "core/_home_body.html" %}{% endblock %}
-{% block public %}
-  <div class="mx-auto max-w-3xl px-4 py-16">{% include "core/_home_body.html" %}</div>
+{% block content %}
+<div class="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+  <p class="text-xs font-semibold uppercase tracking-wider text-brand-600">Signed in as {{ user.role }}</p>
+  <h2 class="mt-2 text-2xl font-semibold tracking-tight">Welcome, {{ user.get_short_name }}</h2>
+  <p class="mt-2 max-w-xl text-slate-600">
+    Authentication is working. Catalog, subscriptions, billing, payments and reports
+    are added module by module in the next steps.
+  </p>
+</div>
 {% endblock %}

@@ -13,3 +13,12 @@ python manage.py runserver
 ```
 
 Create the database first: `createdb -U postgres brightloop` (or via pgAdmin).
+
+## Accounts (step 2)
+
+```
+python manage.py migrate
+python manage.py createsuperuser      # email, full name, password; gets role "admin"
+python manage.py test                 # needs CREATE DATABASE rights on your postgres user
+```
+Sign up at `/accounts/signup/`. Password reset emails print in the terminal running `runserver` (console backend).

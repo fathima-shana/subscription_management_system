@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Local apps
     "apps.core",
+    "apps.accounts",
 ]
 
 MIDDLEWARE = [
@@ -77,8 +78,22 @@ DATABASES = {
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# --- Password rules are added with the accounts app (step 2) -------------------
-AUTH_PASSWORD_VALIDATORS = []
+# --- Auth ----------------------------------------------------------------------
+AUTH_USER_MODEL = "accounts.User"
+LOGIN_URL = "accounts:login"
+LOGIN_REDIRECT_URL = "core:home"
+LOGOUT_REDIRECT_URL = "accounts:login"
+PASSWORD_RESET_TIMEOUT = 3600  # reset links expire after 1 hour (and die once used)
+
+AUTH_PASSWORD_VALIDATORS = [
+    {"NAME": "apps.accounts.validators.StrongPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+]
+
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+]
 
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Asia/Kolkata"

@@ -23,7 +23,8 @@
       hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
       x-data="{ sidebar: false }">
 
-  {% if user.is_authenticated %}
+  {# `page` is the app shell. Auth pages override it with a bare layout. #}
+  {% block page %}
     {% include "partials/sidebar.html" %}
     <div class="flex min-h-full flex-col lg:pl-64">
       {% include "partials/topbar.html" %}
@@ -31,11 +32,7 @@
         {% block content %}{% endblock %}
       </main>
     </div>
-  {% else %}
-    <main class="min-h-full">
-      {% block public %}{% endblock %}
-    </main>
-  {% endif %}
+  {% endblock %}
 
   {% include "partials/toasts.html" %}
   <script src="{% static 'js/app.js' %}"></script>
