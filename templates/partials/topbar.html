@@ -15,6 +15,7 @@
     <div x-show="open" x-cloak x-transition.origin.top.right
          class="absolute right-4 top-14 w-48 rounded-lg border border-slate-200 bg-white py-1 text-sm shadow-lg sm:right-6 lg:right-8">
       <div class="truncate px-3 py-2 text-xs text-slate-500">{{ user.email }}</div>
+      <a href="{% url 'accounts:password_change' %}" class="block px-3 py-2 text-slate-700 hover:bg-slate-50">Change password</a>
       <form method="post" action="{% url 'accounts:logout' %}">
         {% csrf_token %}
         <button type="submit" class="block w-full px-3 py-2 text-left text-slate-700 hover:bg-slate-50">Sign out</button>

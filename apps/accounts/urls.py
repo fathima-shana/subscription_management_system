@@ -10,6 +10,7 @@ urlpatterns = [
     path("login/", rate_limit("login", 10, 300)(views.LoginView.as_view()), name="login"),
     path("logout/", views.logout_view, name="logout"),
     path("signup/", rate_limit("signup", 10, 3600)(views.signup), name="signup"),
+    path("password-change/", views.PasswordChangeView.as_view(), name="password_change"),
     # Password reset: the reset link is emailed to the registered address only.
     path(
         "password-reset/",

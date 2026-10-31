@@ -1,0 +1,28 @@
+<div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+  {% if page_obj.object_list %}
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-slate-200 text-sm">
+      <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <tr><th class="px-4 py-3">Customer</th><th class="px-4 py-3">Company</th><th class="px-4 py-3">Email</th><th class="px-4 py-3">Phone</th><th class="px-4 py-3">Joined</th></tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for c in page_obj %}
+        <tr>
+          <td class="px-4 py-3 font-medium text-slate-900">{{ c.user.full_name }}</td>
+          <td class="px-4 py-3 text-slate-600">{{ c.company_name|default:"—" }}</td>
+          <td class="px-4 py-3 text-slate-600">{{ c.user.email }}</td>
+          <td class="px-4 py-3 text-slate-600">{{ c.phone|default:"—" }}</td>
+          <td class="px-4 py-3 text-slate-600">{{ c.user.date_joined|date:"d M Y" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "partials/pagination.html" %}
+  {% else %}
+  <div class="px-6 py-14 text-center">
+    <p class="font-medium text-slate-900">{% if q %}No customers match "{{ q }}"{% else %}No customers yet{% endif %}</p>
+    <p class="mt-1 text-sm text-slate-500">{% if q %}Try a different name, email or company.{% else %}Customers appear here after they sign up.{% endif %}</p>
+  </div>
+  {% endif %}
+</div>

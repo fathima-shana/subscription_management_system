@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth import password_validation
 from django.contrib.auth.forms import (
     AuthenticationForm,
+    PasswordChangeForm,
     PasswordResetForm,
     SetPasswordForm,
 )
@@ -71,3 +72,39 @@ class StyledPasswordResetForm(TailwindFormMixin, PasswordResetForm):
 
 class StyledSetPasswordForm(TailwindFormMixin, SetPasswordForm):
     """Used by the reset link. Runs the same password policy as signup."""
+
+
+class StyledPasswordChangeForm(TailwindFormMixin, PasswordChangeForm):
+    """For signed-in users changing their own password."""
+
+
+class StaffCreateForm(TailwindFormMixin, forms.Form):
+    """Admin adds a staff member. There is deliberately no role field: it is always 'staff'."""
+
+    full_name = forms.CharField(max_length=150, widget=forms.TextInput(attrs={"autofocus": True}))
+    email = forms.EmailField(max_length=254)
+    password = forms.CharField(
+        label="Temporary password",
+        strip=False,
+        help_text="Share it securely. The staff member can change it after signing in.",
+        widget=forms.PasswordInput(
+            attrs={"autocomplete": "new-password", "x-model": "pw", ":type": "show ? 'text' : 'password'"}
+        ),
+    )
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].strip().lower()
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError("An account with this email already exists.")
+        return email
+
+    def clean(self):
+        cleaned = super().clean()
+        password = cleaned.get("password")
+        if password:
+            candidate = User(email=cleaned.get("email", ""), full_name=cleaned.get("full_name", ""))
+            try:
+                password_validation.validate_password(password, candidate)
+            except forms.ValidationError as exc:
+                self.add_error("password", exc)
+        return cleaned
