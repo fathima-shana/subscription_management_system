@@ -36,3 +36,13 @@ class ScopeToCustomerTests(TestCase):
         self.assertEqual(self.owners(AnonymousUser()), set())
         self.alice.is_active = False
         self.assertEqual(self.owners(self.alice), set())
+
+
+class ErrorPageTests(TestCase):
+    def test_500_page_is_standalone_and_friendly(self):
+        from django.test import RequestFactory
+        from django.views.defaults import server_error
+
+        response = server_error(RequestFactory().get("/boom/"))
+        self.assertEqual(response.status_code, 500)
+        self.assertIn(b"Something went wrong", response.content)

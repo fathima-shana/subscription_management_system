@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load ui %}
+
+{% block content %}
+<a href="{% url 'portal:subscriptions' %}" class="text-sm font-medium text-brand-600 hover:text-brand-700">&larr; Back to my subscriptions</a>
+<div class="mt-3 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+  <div class="flex flex-wrap items-start gap-3">
+    <div><h2 class="text-xl font-semibold tracking-tight">{{ sub.number }}</h2><p class="mt-1 text-sm text-slate-500">{{ sub.plan.name }} ({{ sub.plan.get_billing_period_display }})</p></div>
+    <span class="rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ring-1 ring-inset {% badge_classes sub.status %}">{{ sub.status }}</span>
+  </div>
+  {% if is_quotation %}<p class="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">This is a quotation{% if sub.quote_valid_until %}, valid until {{ sub.quote_valid_until|date:"d M Y" }}{% endif %}. Contact us to confirm it.</p>{% endif %}
+  <dl class="mt-6 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
+    <div><dt class="text-slate-500">Payment term</dt><dd class="mt-0.5 font-medium">{{ sub.payment_term.name }}</dd></div>
+    <div><dt class="text-slate-500">Start date</dt><dd class="mt-0.5 font-medium">{{ sub.start_date|date:"d M Y" }}</dd></div>
+    <div><dt class="text-slate-500">Expiry date</dt><dd class="mt-0.5 font-medium">{{ sub.expiry_date|date:"d M Y"|default:"Open-ended" }}</dd></div>
+    <div><dt class="text-slate-500">Next billing</dt><dd class="mt-0.5 font-medium">{{ sub.next_billing_date|date:"d M Y"|default:"-" }}</dd></div>
+  </dl>
+</div>
+
+<section class="mt-6 rounded-xl border border-slate-200 bg-white shadow-sm">
+  <div class="border-b border-slate-200 px-6 py-4"><h3 class="font-semibold">Products</h3><p class="text-sm text-slate-500">Amounts per billing period.</p></div>
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-slate-200 text-sm">
+      <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <tr><th class="px-6 py-3">Product</th><th class="px-4 py-3 text-right">Qty</th><th class="px-4 py-3 text-right">Unit price</th><th class="px-4 py-3 text-right">Amount</th><th class="px-4 py-3 text-right">Discount</th><th class="px-4 py-3">Tax</th><th class="px-4 py-3 text-right">Total</th></tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for p in priced.lines %}
+        <tr>
+          <td class="px-6 py-3 font-medium text-slate-900">{{ p.line.label }}</td>
+          <td class="px-4 py-3 text-right tabular-nums">{{ p.line.quantity }}</td>
+          <td class="px-4 py-3 text-right tabular-nums">{{ p.line.unit_price|money }}</td>
+          <td class="px-4 py-3 text-right tabular-nums">{{ p.amount|money }}</td>
+          <td class="px-4 py-3 text-right tabular-nums text-emerald-700">{% if p.discount %}-{{ p.discount|money }}{% else %}-{% endif %}</td>
+          <td class="px-4 py-3 text-slate-600">{% if p.line.tax %}{{ p.line.tax.name }}{% else %}-{% endif %}</td>
+          <td class="px-4 py-3 text-right font-medium tabular-nums">{{ p.total|money }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="flex justify-end border-t border-slate-200 px-6 py-4">
+    <dl class="w-full max-w-xs space-y-1 text-sm">
+      <div class="flex justify-between"><dt class="text-slate-500">Subtotal</dt><dd class="tabular-nums">{{ priced.subtotal|money }}</dd></div>
+      {% if priced.applied %}<div class="flex justify-between text-emerald-700"><dt>Discount: {{ priced.applied.discount.name }}</dt><dd class="tabular-nums">-{{ priced.discount_total|money }}</dd></div>{% endif %}
+      <div class="flex justify-between"><dt class="text-slate-500">Tax</dt><dd class="tabular-nums">{{ priced.tax_total|money }}</dd></div>
+      <div class="flex justify-between border-t border-slate-200 pt-1 text-base font-semibold"><dt>Total per period</dt><dd class="tabular-nums">{{ priced.total|money }}</dd></div>
+    </dl>
+  </div>
+</section>
+
+{% if invoices %}
+<section class="mt-6 rounded-xl border border-slate-200 bg-white shadow-sm">
+  <div class="border-b border-slate-200 px-6 py-4"><h3 class="font-semibold">Invoices</h3></div>
+  <ul class="divide-y divide-slate-100 text-sm">
+    {% for i in invoices %}
+    <li class="flex flex-wrap items-center justify-between gap-x-4 px-6 py-3">
+      <a href="{% url 'portal:invoice' i.pk %}" class="font-medium text-brand-700 hover:underline">{{ i.number }}</a>
+      <span class="text-slate-600">{{ i.period_start|date:"d M Y" }} &ndash; {{ i.period_end|date:"d M Y" }}</span>
+      <span class="tabular-nums">{{ i.total|money }}</span>
+      <span class="rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ring-1 ring-inset {% badge_classes i.status %}">{{ i.status }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% endblock %}

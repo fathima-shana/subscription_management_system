@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-5 flex flex-wrap items-center gap-3">
+  <div>
+    <h2 class="text-xl font-semibold tracking-tight">Welcome, {{ user.get_short_name }}</h2>
+    <p class="text-sm text-slate-500">Figures for {{ filters.label }}. Recurring revenue and balances are as of today.</p>
+  </div>
+  <a href="{% url 'reports:report' %}" class="ml-auto rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700">Full reports</a>
+</div>
+{% include "reports/_kpis.html" %}
+<div class="mt-6">{% include "reports/_panels.html" %}</div>
+{% endblock %}

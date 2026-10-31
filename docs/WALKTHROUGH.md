@@ -83,3 +83,28 @@ admin, and a private (incognito) window for the staff member or customer, so the
 8. **Payments** (`/payments/`, admin and staff) shows three cards: **Outstanding** (what is still owed on open invoices), **Overdue** (open invoices past their due date, click it to see them) and **Collected this month**. Below is every payment; filter by method or search by invoice, customer or reference.
 9. An invoice that is fully discounted (total 0) is created as Paid and is never outstanding.
 10. Cancelling: an invoice that has a payment cannot be cancelled. Void the payment first.
+
+## 8. Dashboard and reports (step 9)
+1. Sign in as admin or staff. The home page (`/`) is now the business dashboard: **Monthly recurring revenue**, **Invoiced** and **Collected** for this month, **Outstanding** and **Overdue** as of today, subscription counts by status, **Collected per month** (last 6 months), **Payments by method** and the **Overdue invoices** list with days overdue.
+2. Click **Full reports** (or **Reports** in the sidebar, `/reports/`).
+3. Filters at the top: **Period** (This month, Last 30 days, This quarter, This year, All time, Custom with From and To dates) and **Plan**. Click **Apply**. A bad custom range shows a message and falls back to this month.
+4. Check the maths with the data from the walkthrough: a monthly subscription with lines of ₹2,560.00 gives MRR ₹2,560.00. A yearly plan is divided by 12, weekly is multiplied by 52/12, daily by 365/12. MRR counts Active subscriptions only, before discounts and tax.
+5. **Recurring revenue by plan** shows the per-period amount and the monthly figure for each plan.
+6. **Export to CSV**: Invoices, Payments, Subscriptions, Overdue invoices. The files use the period and plan you selected (overdue is always as of today) and open in Excel. Each export is written to the audit log.
+7. Staff can see the dashboard, reports and exports too; only admin runs billing and voids payments.
+
+## 9. Customer portal (step 9)
+1. In a private window sign in as a customer (for example the one who signed up in section 1). The home page is the customer dashboard: **Active subscriptions**, **Next billing**, **Amount due**, **Overdue**, and short lists of subscriptions and invoices. No business figures are shown.
+2. The sidebar has only **My subscriptions** (`/portal/subscriptions/`) and **My invoices** (`/portal/invoices/`).
+3. A subscription page (`/portal/subscriptions/<id>/`) shows the plan, dates, products, discount, tax, the total per period and its invoices. It is read-only. Draft subscriptions are never shown; quotations are, with a note.
+4. An invoice page (`/portal/invoices/<id>/`) shows the lines, totals, balance due and the payments received (voided ones are hidden). **Print or save as PDF** opens a clean page: use the browser's Print, then choose Save as PDF.
+5. Filter invoices by Unpaid, Overdue or Paid, and search by number.
+6. A customer can only ever open their own records. Another customer's id, or any back-office page, gives a 404 or the 403 page.
+
+## 10. Demo data and checks (step 10)
+1. `python manage.py seed_demo_data --reset-demo` loads about 10,000 subscriptions, 2,500 customers, 32,000 invoices and 25,000 payments in about 30 seconds, then checks that every invoice, line and payment adds up. Use `--subscriptions 500` for a small set. The same `--seed` always produces the same data.
+2. Sign in with `admin@demo.example`, `staff@demo.example` or `customer00001@demo.example`; the password for all is `Demo!Pass123`.
+3. `/billing/` now shows about 185 subscriptions due today. Run billing to see a large run, then run it again to see that nothing is billed twice.
+4. `python manage.py verify_data` checks the books at any time: invoice totals against their lines, `amount_paid` against the payments, statuses, discount usage and subscription dates.
+5. `python manage.py perf_check --billing --explain` times every main page and the billing run, and prints the query plans. See `docs/PERFORMANCE.md`.
+6. `--reset-demo` removes only the `@demo.example` customers and their data, never anything else.

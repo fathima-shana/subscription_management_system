@@ -45,6 +45,11 @@ def _sum_balance(qs):
     return {"amount": row["amount"], "count": row["count"]}
 
 
+def balance_totals(qs):
+    """{'amount': total still owing, 'count': invoices} for any Invoice queryset."""
+    return _sum_balance(qs)
+
+
 def outstanding_totals(today):
     """{'outstanding': {amount, count}, 'overdue': {amount, count}}"""
     return {

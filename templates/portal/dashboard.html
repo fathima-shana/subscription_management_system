@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load ui %}
+
+{% block content %}
+<div class="mb-5">
+  <h2 class="text-xl font-semibold tracking-tight">Welcome, {{ user.get_short_name }}</h2>
+  <p class="text-sm text-slate-500">Your subscriptions and invoices at a glance.</p>
+</div>
+
+<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+  <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"><p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Active subscriptions</p><p class="mt-1 text-2xl font-semibold tabular-nums">{{ d.active_count }}</p></div>
+  <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"><p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Next billing</p><p class="mt-1 text-2xl font-semibold">{{ d.next_billing|date:"d M Y"|default:"-" }}</p></div>
+  <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"><p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Amount due</p><p class="mt-1 text-2xl font-semibold tabular-nums">{{ d.outstanding.amount|money }}</p><p class="text-sm text-slate-500">{{ d.outstanding.count }} unpaid invoice{{ d.outstanding.count|pluralize }}</p></div>
+  <a href="{% url 'portal:invoices' %}?status=overdue" class="rounded-xl border bg-white p-5 shadow-sm hover:bg-slate-50 {% if d.overdue.count %}border-rose-200{% else %}border-slate-200{% endif %}"><p class="text-xs font-semibold uppercase tracking-wide {% if d.overdue.count %}text-rose-600{% else %}text-slate-500{% endif %}">Overdue</p><p class="mt-1 text-2xl font-semibold tabular-nums {% if d.overdue.count %}text-rose-700{% endif %}">{{ d.overdue.amount|money }}</p><p class="text-sm text-slate-500">{{ d.overdue.count }} invoice{{ d.overdue.count|pluralize }}</p></a>
+</div>
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+  <section class="rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4"><h3 class="font-semibold">My subscriptions</h3><a class="text-sm font-medium text-brand-600 hover:text-brand-700" href="{% url 'portal:subscriptions' %}">See all</a></div>
+    {% if d.recent_subscriptions %}
+    <ul class="divide-y divide-slate-100 text-sm">
+      {% for s in d.recent_subscriptions %}
+      <li class="flex items-center justify-between gap-3 px-6 py-3">
+        <a class="font-medium text-brand-700 hover:underline" href="{% url 'portal:subscription' s.pk %}">{{ s.number }}</a>
+        <span class="text-slate-600">{{ s.plan.name }}</span>
+        <span class="rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ring-1 ring-inset {% badge_classes s.status %}">{{ s.status }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}<p class="px-6 py-8 text-center text-sm text-slate-500">You have no subscriptions yet.</p>{% endif %}
+  </section>
+
+  <section class="rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4"><h3 class="font-semibold">Recent invoices</h3><a class="text-sm font-medium text-brand-600 hover:text-brand-700" href="{% url 'portal:invoices' %}">See all</a></div>
+    {% if d.recent_invoices %}
+    <ul class="divide-y divide-slate-100 text-sm">
+      {% for i in d.recent_invoices %}
+      <li class="flex items-center justify-between gap-3 px-6 py-3">
+        <a class="font-medium text-brand-700 hover:underline" href="{% url 'portal:invoice' i.pk %}">{{ i.number }}</a>
+        <span class="tabular-nums">{{ i.total|money }}</span>
+        {% with st=i|invoice_status:today %}<span class="rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ring-1 ring-inset {% badge_classes st %}">{{ st }}</span>{% endwith %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}<p class="px-6 py-8 text-center text-sm text-slate-500">No invoices yet.</p>{% endif %}
+  </section>
+</div>
+{% endblock %}
